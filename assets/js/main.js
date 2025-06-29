@@ -5,20 +5,31 @@ document.addEventListener('DOMContentLoaded', () => {
   // ================================
   // 1. MENÚ RESPONSIVE (hamburguesa)
   // ================================
-  // Botón con clase .hamburger
-  const hamButton = document.querySelector('.hamburger');
-  // Navegación con clase .nav-menu
-  const mobileNav = document.querySelector('.nav-menu');
+// 1. MENÚ RESPONSIVE (hamburguesa)
+const hamButton = document.querySelector('.hamburger');
+const mobileNav = document.querySelector('.nav-menu');
 
-  if (hamButton && mobileNav) {
-    hamButton.addEventListener('click', () => {
-      // alterna la clase "active" para mostrar/ocultar el menú
-      mobileNav.classList.toggle('active');
-      // actualizamos aria-expanded para accesibilidad
-      const expanded = mobileNav.classList.contains('active');
-      hamButton.setAttribute('aria-expanded', expanded);
+if (hamButton && mobileNav) {
+  hamButton.addEventListener('click', () => {
+    // 1) alternamos la visualización normal
+    const isActive = mobileNav.classList.toggle('active');
+    // 2) actualizamos aria-expanded
+    hamButton.setAttribute('aria-expanded', isActive);
+    // 3) añadimos/quitanos la clase small-menu simultánea
+    mobileNav.classList.toggle('small-menu', isActive);
+  });
+
+  // cerrar y quitar small-menu al clicar un enlace
+  mobileNav.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      if (mobileNav.classList.contains('active')) {
+        mobileNav.classList.remove('active', 'small-menu');
+        hamButton.setAttribute('aria-expanded', 'false');
+      }
     });
-  }
+  });
+}
+
 
   // ================================
   // 2. HERO SLIDER (auto + pausa on hover)
@@ -38,9 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   if (slides.length) {
-    // inicia el bucle de slides
     slideTimer = setInterval(nextSlide, 5000);
-    // pausa al pasar el ratón, reanuda al salir
     slides.forEach(slide => {
       slide.addEventListener('mouseenter', () => clearInterval(slideTimer));
       slide.addEventListener('mouseleave', () => {
@@ -57,7 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.querySelector(selector);
     if (!container) return;
 
-    // crea la estructura inicial
     const parts = ['days','hours','minutes','seconds'];
     container.innerHTML = parts.map(p => `
       <div class="time">
@@ -66,9 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `).join('');
 
-    // actualiza valores cada segundo
     const update = () => {
-      const now = new Date();
+      const now  = new Date();
       const diff = Math.max(0, endDate - now);
 
       const d = Math.floor(diff / 1000 / 60 / 60 / 24);
@@ -86,7 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(update, 1000);
   }
 
-  // fijamos la fecha límite
   startCountdown('2025-07-01T00:00:00', '#countdown');
 
   // ================================
@@ -122,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // ======================================
 // 5. REFUERZO AUTOPLAY VÍDEO NEWSLETTER
 // ======================================
-// En el HTML el vídeo tiene clase "newsletter-bg"
 const newsletterVid = document.querySelector('.newsletter-bg');
 if (newsletterVid) {
   newsletterVid.muted = true;

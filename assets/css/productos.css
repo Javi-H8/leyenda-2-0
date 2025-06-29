@@ -1,0 +1,325 @@
+/* ===================================================================
+   assets/css/productos.css (GRISES, NEGROS & BLANCOS LLAMATIVOS)
+   =================================================================== */
+
+/* 1. Variables globales */
+:root {
+  /* Colores */
+  --color-bg: #fafafa;             /* Gris muy claro */
+  --color-card-bg: #ffffff;        /* Blanco puro */
+  --color-card-border: #d0d0d0;    /* Gris medio */
+  --color-primary: #000000;        /* Negro puro para textos importantes */
+  --color-secondary: #333333;      /* Gris oscuro para textos secundarios */
+  --color-accent: #000000;         /* Negro puro para botones/resaltados */
+  --color-muted: #666666;          /* Gris para placeholders y descripciones */
+
+  /* Espaciados y formas */
+  --gap: 1.5rem;
+  --radius: 0.5rem;                /* Bordes ligeramente más definidos */
+  --transition: 0.2s ease-in-out;
+
+  /* Tipografía */
+  --font-base: 'Inter', sans-serif;
+  --fs-sm: 0.875rem;
+  --fs-md: 1rem;
+  --fw-bold: 700;                  /* Más peso para destacar títulos */
+}
+
+/* 2. Reset y fondo */
+body.productos-page {
+  margin: 0;
+  padding: 0;
+  background: var(--color-bg);
+  color: var(--color-secondary);
+  font-family: var(--font-base);
+  line-height: 1.6;
+}
+
+/* 3. Contenedor y título */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--gap);
+}
+h1.text-center {
+  font-size: 2.25rem;
+  color: var(--color-primary);
+  text-align: center;
+  margin-bottom: calc(var(--gap) * 1.5);
+  font-weight: var(--fw-bold);
+}
+
+/* 4. FILTROS */
+#filtros {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  padding: calc(var(--gap) * 1.1);
+  margin-bottom: var(--gap);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  align-items: flex-end;
+}
+
+/* 4.1 Grupos de filtro */
+.filter-group {
+  position: relative;
+  flex: 1 1 200px;
+}
+.filter-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--color-primary);
+}
+.filter-group select,
+.filter-group input[type="search"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: var(--fs-md);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.filter-group select:focus,
+.filter-group input[type="search"]:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.1);
+}
+.filter-group input::placeholder {
+  color: var(--color-muted);
+}
+
+/* 4.2 Toggle columnas (móvil) */
+.column-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.column-switcher span {
+  font-size: var(--fs-sm);
+  color: var(--color-primary);
+  font-weight: var(--fw-bold);
+}
+.column-switcher .col-btn {
+  width: 2.2rem;
+  height: 2.2rem;
+  display: grid;
+  place-items: center;
+  background: var(--color-bg);
+  border: 1px solid var(--color-card-border);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+  color: var(--color-secondary);
+  font-weight: var(--fw-bold);
+}
+.column-switcher .col-btn.active {
+  background: var(--color-accent);
+  color: #fff;
+}
+.column-switcher .col-btn:hover {
+  transform: scale(1.15);
+}
+
+/* ocultar toggle en tablet+ */
+@media (min-width: 768px) {
+  .column-switcher { display: none; }
+}
+
+/* 5. GRID de productos */
+.productos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px,1fr));
+  gap: calc(var(--gap) * 1.2);
+  margin-bottom: var(--gap);
+}
+.productos.uno-por-linea    { grid-template-columns: 1fr; }
+.productos.dos-por-linea    { grid-template-columns: repeat(2,1fr); }
+.productos.tres-por-linea   { grid-template-columns: repeat(3,1fr); }
+.productos.cuatro-por-linea { grid-template-columns: repeat(4,1fr); }
+
+/* 6. Tarjeta de producto */
+.card {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.12);
+}
+
+/* 6.1 Imagen */
+.card-img {
+  position: relative;
+  padding-top: 75%;
+  overflow: hidden;
+}
+.card-img img {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition);
+}
+.card:hover .card-img img {
+  transform: scale(1.08);
+}
+
+/* 6.2 Contenido */
+.card-content {
+  padding: var(--gap);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.card-content h2 {
+  font-size: 1.2rem;
+  margin: 0 0 0.5rem;
+  color: var(--color-primary);
+  font-weight: var(--fw-bold);
+}
+.card-content .precio {
+  font-size: 1rem;
+  font-weight: var(--fw-bold);
+  color: var(--color-accent);
+  margin-bottom: var(--gap);
+}
+.add-form {
+  margin-top: auto;
+}
+.add-to-cart {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+}
+.add-to-cart:hover {
+  background: var(--color-secondary);
+  transform: translateY(-2px);
+}
+
+/* 7. Mensaje “sin productos” */
+.no-products {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: var(--fs-md);
+  color: var(--color-muted);
+  padding: var(--gap) 0;
+}
+
+/* 8. Forzar 4 columnas en pantallas grandes */
+@media (min-width: 1200px) {
+  .productos,
+  .productos.uno-por-linea,
+  .productos.dos-por-linea,
+  .productos.tres-por-linea,
+  .productos.cuatro-por-linea {
+    grid-template-columns: repeat(4,1fr) !important;
+  }
+}
+
+body.productos-page {
+  background-color: #000000 !important;
+  color: #000000 !important;
+}
+
+/* Añade al final de tu productos.css */
+
+/* Letras más pequeñas en móvil (≲480px) */
+@media (max-width: 480px) {
+  .card-content h2 {
+    font-size: 1rem;           /* antes 1.15rem */
+  }
+  .card-content .descripcion {
+    font-size: 0.8rem;         /* antes 0.9rem */
+  }
+  .card-content .precio {
+    font-size: 0.9rem;         /* antes 1rem */
+  }
+}
+/* Animaciones */
+.fade-in { animation: fadeIn 0.3s ease-in; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+   .ripple {
+     position: absolute;
+     border-radius: 50%;
+     background: rgba(0,0,0,0.1);
+     transform: scale(0);
+     animation: ripple 0.6s linear;
+     pointer-events: none;
+   }
+   @keyframes ripple {
+     to { transform: scale(4); opacity: 0; }
+   }
+
+   /* ====================================================
+   SOLO filtros y tarjetas: gris de fondo + texto blanco
+   ==================================================== */
+
+/* FILTROS */
+#filtros {
+  background-color: #2a2a2a !important;
+  border: 1px solid #444 !important;
+}
+#filtros label,
+#filtros select,
+#filtros input {
+  color: #fff !important;
+}
+#filtros select,
+#filtros input {
+  background-color: #333 !important;
+  border: 1px solid #555 !important;
+}
+#filtros input::placeholder {
+  color: rgba(255,255,255,0.6) !important;
+}
+
+/* TARJETAS */
+#lista-productos .card {
+  background-color: #2a2a2a !important;
+  border: 1px solid #444 !important;
+}
+#lista-productos .card h2,
+#lista-productos .card .precio,
+#lista-productos .card .add-to-cart {
+  color: #fff !important;
+}
+#lista-productos .card .add-to-cart {
+  background-color: #000 !important;
+  border: none !important;
+}
+
+/* TOGGLE COLUMNAS (móvil) */
+.column-switcher .col-btn {
+  background-color: #333 !important;
+  border: 1px solid #555 !important;
+  color: #fff !important;
+}
+.column-switcher .col-btn.active {
+  background-color: #444 !important;
+}
+
+/* Título de sección en blanco */
+body.productos-page h1.text-center {
+  color: #ffffff !important;
+}
+

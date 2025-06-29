@@ -1,76 +1,110 @@
 /* assets/css/header.css */
-/* … tus estilos de .site-header y .header-inner … */
 
-/* Botón hamburguesa */
-.hamburger {
-  display: block;
+/* Variables globales */
+:root {
+  --color-bg: #fff;
+  --color-overlay: rgba(0, 0, 0, .1);
+  --color-primary: #333;
+  --color-accent: #333;
+  --transition-fast: 200ms ease-in-out;
+}
+
+/* Estructura básica */
+.site-header {
+  position: relative;
+  background: var(--color-bg);
+  z-index: 1000;
+}
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+/* Logo */
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+/* Hamburgesa */
+.header__toggle {
   background: none;
   border: none;
-  font-size: 1.75rem;       /* tamaño del símbolo ☰ */
+  font-size: 1.75rem;
   cursor: pointer;
   color: var(--color-primary);
+  display: block;
   z-index: 110;
 }
 
-/* Menú oculto por defecto */
+/* Navegación móvil oculta por defecto */
 .nav-menu {
-  display: none;
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  flex-direction: column;   /* columna para los <li> */
-  z-index: 100;
+  max-height: 0;
+  overflow: hidden;
+  background: var(--color-bg);
+  box-shadow: 0 2px 8px var(--color-overlay);
+  transition: max-height var(--transition-fast);
 }
 
-.nav-menu ul {
+/* Cuando está abierto */
+.nav-menu.is-open {
+  max-height: 90vh; /* lo que necesites */
+}
+
+/* Lista vertical móvil */
+.nav-menu__list {
+  list-style: none;
   margin: 0;
   padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;   /* vertical */
+}
+.nav-menu__item + .nav-menu__item {
+  border-top: 1px solid var(--color-overlay);
 }
 
-.nav-menu li + li {
-  border-top: 1px solid #eee;
-}
-
-.nav-menu a {
+/* Enlaces */
+.nav-menu__link {
   display: block;
   padding: 1rem;
   font-weight: 500;
-  color: var(--color-text);
-  transition: background var(--transition), color var(--transition);
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
-.nav-menu a:hover {
-  background: rgba(0,0,0,0.03);
+.nav-menu__link:hover,
+.nav-menu__link:focus {
+  background: var(--color-overlay);
   color: var(--color-accent);
+  outline: none;
 }
 
-/* Cuando tenga la clase .show */
-.nav-menu.show {
-  display: flex;
-}
-
-/* En escritorio: menú horizontal y botón escondido */
+/* Escritorio: menú horizontal */
 @media (min-width: 768px) {
-  .hamburger {
+  .header__toggle {
     display: none;
   }
   .nav-menu {
-    display: flex !important;
     position: static;
+    max-height: none;
+    display: flex;
     background: transparent;
     box-shadow: none;
   }
-  .nav-menu ul {
-    flex-direction: row;
+  .nav-menu__list {
+    display: flex;
     gap: 1.5rem;
   }
-  .nav-menu a {
-    padding: 0;
+  .nav-menu__item {
     border: none;
+  }
+  .nav-menu__link {
+    padding: 0;
   }
 }

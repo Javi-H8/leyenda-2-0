@@ -1,0 +1,134 @@
+<?php
+// ───────────── INIT & SECURITY ─────────────
+declare(strict_types=1);
+require_once __DIR__ . '/../config/database.php'; // conexión PDO
+
+// ───────────── SESSION & CSRF ─────────────
+session_start();
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrf = $_SESSION['csrf_token'];
+
+// ───────────── CARGAR CATEGORÍAS ─────────────
+try {
+    $stmtCat = $pdo->query("
+      SELECT id, nombre, slug
+      FROM categorias
+      WHERE deleted_at IS NULL
+      ORDER BY nombre
+    ");
+    $categorias = $stmtCat->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    exit('Error al cargar categorías.');
+}
+
+// ───────────── CARGAR PRODUCTOS ─────────────
+try {
+    $stmtProd = $pdo->query("
+      SELECT p.id, p.nombre, p.slug, p.descripcion, p.precio_base, c.slug AS cat_slug
+      FROM productos p
+      JOIN categorias c ON p.categoria_id = c.id
+      WHERE p.activo = 1
+        AND p.deleted_at IS NULL
+      ORDER BY p.created_at DESC
+    ");
+    $productos = $stmtProd->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    exit('Error al cargar productos.');
+}
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LEYENDA – Nuestros Productos</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="../assets/css/grid.css">
+  <link rel="stylesheet" href="../assets/css/header.css">
+  <link rel="stylesheet" href="../assets/css/footer.css">
+  <link rel="stylesheet" href="../assets/css/productos.css">
+  <link rel="stylesheet" href="../assets/css/main.css">
+
+  <!-- JS -->
+  <script src="../assets/js/main.js" defer></script>
+  <script src="../assets/js/productos.js" defer></script>
+</head>
+<body class="productos-page">
+
+<?php include __DIR__ . '/../includes/header.php'; ?>
+
+<main class="container">
+  <h1 class="text-center">Nuestros Productos</h1>
+
+  <!-- ───────────── FILTROS ───────────── -->
+  <section id="filtros" class="flex items-center justify-between wrap-gap">
+    <div class="filter-group">
+      <label for="categoria">Categoría:</label>
+      <select id="categoria" name="categoria">
+        <option value="all">Todas</option>
+        <?php foreach ($categorias as $cat): ?>
+          <option value="<?= htmlspecialchars($cat['slug'], ENT_QUOTES) ?>">
+            <?= htmlspecialchars($cat['nombre'], ENT_QUOTES) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="buscador">Buscar:</label>
+      <input type="search" id="buscador" placeholder="Buscar producto…" aria-label="Buscar productos">
+    </div>
+    <div class="column-switcher" role="group" aria-label="Columnas">
+      <span>Columnas:</span>
+      <button type="button" data-cols="1" class="col-btn" aria-pressed="false">1</button>
+      <button type="button" data-cols="2" class="col-btn active" aria-pressed="true">2</button>
+    </div>
+  </section>
+
+  <!-- ───────────── LISTA DE PRODUCTOS ───────────── -->
+  <section id="lista-productos" class="productos dos-por-linea">
+    <?php if (empty($productos)): ?>
+      <p class="no-products">No hay productos disponibles.</p>
+    <?php else: ?>
+      <?php foreach ($productos as $p):
+        // Obtener imagen principal
+        $stmtImg = $pdo->prepare("
+          SELECT ruta FROM producto_imagenes
+          WHERE variante_id = (
+            SELECT id FROM producto_variantes
+            WHERE producto_id = ? LIMIT 1
+          ) AND principal = 1
+          LIMIT 1
+        ");
+        $stmtImg->execute([(int)$p['id']]);
+        $img = $stmtImg->fetchColumn() ?: 'placeholder.png';
+      ?>
+        <article class="card" data-categoria="<?= htmlspecialchars($p['cat_slug'], ENT_QUOTES) ?>">
+          <a href="producto.php?slug=<?= urlencode($p['slug']) ?>" class="card-img">
+            <img src="../assets/images/<?= htmlspecialchars($img, ENT_QUOTES) ?>"
+                 alt="Foto de <?= htmlspecialchars($p['nombre'], ENT_QUOTES) ?>"
+                 loading="lazy">
+          </a>
+          <div class="card-content">
+            <h2><?= htmlspecialchars($p['nombre'], ENT_QUOTES) ?></h2>
+            
+            <div class="precio">€<?= number_format((float)$p['precio_base'], 2, ',', '.') ?></div>
+            <form method="post" action="../carrito.php" class="add-form">
+              <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
+              <input type="hidden" name="producto_id" value="<?= (int)$p['id'] ?>">
+              <button type="submit" class="add-to-cart">Añadir al carrito</button>
+            </form>
+          </div>
+        </article>
+      <?php endforeach; ?>
+    <?php endif; ?>
+  </section>
+</main>
+
+<?php include __DIR__ . '/../includes/footer.php'; ?>
+
+</body>
+</html>
