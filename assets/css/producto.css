@@ -1,0 +1,367 @@
+/* ===================================================================
+   assets/css/producto.css (Totalmente actualizado: texto forzado blanco,
+   galería tipo “carta” con miniaturas y estilos coherentes)
+   =================================================================== */
+
+/* ───────── FORZAR TEXTO BLANCO EN CONTENIDO, EXCLUIR HEADER ───────── */
+body.producto-page main.producto-detail,
+body.producto-page main.producto-detail * {
+  color: #ffffff !important;
+}
+
+/* ───────── EXCLUIR HEADER (texto en negro) ───────── */
+body.producto-page header,
+body.producto-page header * {
+  color: #000000 !important;
+}
+
+/* ───────── FORZAR TEXTO BLANCO EN TODO LO DEMÁS ───────── */
+body.producto-page,
+body.producto-page * {
+  color: #ffffff !important;
+}
+
+/* Formularios y placeholders */
+body.producto-page input,
+body.producto-page textarea,
+body.producto-page select,
+body.producto-page option,
+body.producto-page button,
+body.producto-page summary {
+  color: #ffffff !important;
+}
+body.producto-page ::-webkit-input-placeholder { color: #ffffff !important; }
+body.producto-page ::-moz-placeholder          { color: #ffffff !important; }
+body.producto-page ::-ms-input-placeholder     { color: #ffffff !important; }
+
+/* 1. Variables globales */
+:root {
+  --color-page-bg:     #121212;
+  --color-card-bg:     #1e1e1e;
+  --color-border:      #2a2a2a;
+  --color-text:        #ffffff;
+  --color-muted:       #888888;
+  --color-accent:      #000000;
+  --color-highlight:   #444444;
+
+  --gap:      1rem;
+  --radius:   0.5rem;
+  --transition: 0.2s ease-in-out;
+
+  --font-base:   'Inter', sans-serif;
+  --fs-sm:       0.875rem;
+  --fs-md:       1rem;
+  --fs-lg:       1.25rem;
+  --fw-regular:  400;
+  --fw-bold:     700;
+}
+
+/* 2. Reset y fondo general */
+body.producto-page {
+  margin: 0;
+  padding: 0;
+  background: var(--color-page-bg);
+  font-family: var(--font-base);
+  line-height: 1.5;
+}
+
+/* 3. Contenedor principal */
+.container.producto-detail {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--gap);
+}
+
+/* 4. Breadcrumbs */
+.breadcrumbs {
+  font-size: var(--fs-sm);
+  margin-bottom: var(--gap);
+}
+.breadcrumbs a {
+  text-decoration: none;
+  transition: color var(--transition);
+}
+.breadcrumbs a:hover {
+  color: var(--color-text) !important;
+}
+
+/* 5. Grid detalle */
+.detalle-grid {
+  display: grid;
+  grid-template-columns: 100px 1fr 1fr;
+  gap: var(--gap);
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .detalle-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 6. Miniaturas */
+.gallery-thumbs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  max-height: 600px;
+  overflow-y: auto;
+}
+.gallery-thumbs .thumb {
+  background: var(--color-card-bg);
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  padding: 0;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+.gallery-thumbs .thumb img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+.gallery-thumbs .thumb:hover,
+.gallery-thumbs .thumb.active {
+  border-color: var(--color-accent);
+  background: var(--color-highlight);
+}
+
+/* 7. Imagen principal */
+.gallery-main {
+  position: relative;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  width: 100%;
+  padding-top: 75%; /* 4:3 ratio */
+}
+.gallery-main .main-img {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+.gallery-main .main-img.visible {
+  opacity: 1;
+}
+
+/* 8. Información del producto */
+.product-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+.product-info h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: var(--fw-bold);
+}
+.product-info .categoria {
+  font-size: var(--fs-sm);
+  color: var(--color-muted) !important;
+}
+.product-info .price {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+}
+
+/* 9. Selector de variantes */
+.detalles-variant {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--gap);
+}
+.detalles-variant label {
+  display: block;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  margin-bottom: 0.5rem;
+}
+.detalles-variant select {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: var(--fs-md);
+  background: var(--color-page-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+.low-stock {
+  margin-top: 0.5rem;
+  font-size: var(--fs-sm);
+  color: #ff4444 !important;
+  font-weight: var(--fw-bold);
+}
+
+/* 10. Precio dinámico */
+.precio-detalle {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+}
+
+/* 11. Botón añadir al carrito */
+.add-form {
+  margin-top: var(--gap);
+}
+.btn-carrito {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--color-accent);
+  border: none;
+  border-radius: var(--radius);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+}
+.btn-carrito:hover:not(:disabled) {
+  background: var(--color-highlight);
+  transform: translateY(-2px);
+}
+.btn-carrito:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 12. Shipping info */
+.shipping-info {
+  list-style: none;
+  padding: 0;
+  margin: var(--gap) 0 0;
+  font-size: var(--fs-sm);
+}
+.shipping-info li {
+  margin-bottom: 0.25rem;
+}
+
+/* 13. Tabs de detalle */
+.prod-tab {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin-top: var(--gap);
+}
+.prod-tab summary {
+  padding: var(--gap);
+  cursor: pointer;
+  font-weight: var(--fw-bold);
+  list-style: none;
+}
+.prod-tab[open] summary {
+  background: var(--color-highlight);
+}
+.prod-tab p {
+  padding: 0 var(--gap) var(--gap);
+  margin: 0;
+  font-size: var(--fs-md);
+}
+
+/* 14. Responsive tweaks */
+@media (max-width: 1024px) {
+  .detalle-grid {
+    grid-template-columns: 100px 1fr;
+  }
+  .product-info {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 600px) {
+  .detalle-grid {
+    grid-template-columns: 1fr;
+  }
+  .gallery-thumbs {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  .gallery-thumbs .thumb img {
+    aspect-ratio: 4/3;
+  }
+  .gallery-main {
+    padding-top: 56.25%; /* 16:9 ratio */
+  }
+}
+
+/* Estilos para el botón “Añadir al carrito” */
+.add-to-cart {
+  display: inline-block;
+  width: 100%;
+  padding: 0.75rem 1rem !important;
+  margin-top: var(--gap);
+  background-color: var(--color-accent) !important;
+  color: var(--color-text) !important;
+  font-size: var(--fs-md) !important;
+  font-weight: var(--fw-bold) !important;
+  text-align: center;
+  border: none !important;
+  border-radius: var(--radius) !important;
+  cursor: pointer !important;
+  transition: background-color var(--transition), transform var(--transition);
+}
+.add-to-cart:hover:not(:disabled) {
+  background-color: var(--color-highlight) !important;
+  transform: translateY(-2px);
+}
+.add-to-cart:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* ===================================================
+   FORZAR HAMBURGER EN NEGRO (para header en móvil)
+   =================================================== */
+@media (max-width: 768px) {
+  /* Selecciona tu botón de menú principal */
+  header .header__toggle,
+  header .menu-toggle,
+  header button[class*="toggle"],
+  header .hamburger {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    color: inherit !important;
+  }
+  /* Si tu hamburguesa usa spans */
+  header .header__toggle span,
+  header .menu-toggle span,
+  header button[class*="toggle"] span,
+  header .hamburger span {
+    display: block !important;
+    width: 24px !important;
+    height: 3px !important;
+    margin: 4px 0 !important;
+    background-color: #000 !important;
+  }
+  /* Si el ícono es SVG */
+  header .header__toggle svg path,
+  header .menu-toggle svg path,
+  header button[class*="toggle"] svg path,
+  header .hamburger svg path {
+    fill:   #000 !important;
+    stroke: #000 !important;
+  }
+}
+/* ===================================================
+   OVERRIDE: forzar la hamburguesa en negro
+   solo para la página producto.php
+   =================================================== */
+body.producto-page header .hamburger,
+body.producto-page header #menu-toggle {
+  /* El propio carácter ☰ hereda este color */
+  color: #000000 !important;
+}
+
+/* Si quisieras afectar también los spans (en caso de icono multispan) */
+body.producto-page header .hamburger span,
+body.producto-page header #menu-toggle span {
+  background-color: #000000 !important;
+}
+
+/* Y si tu hamburguesa fuera un SVG */
+body.producto-page header .hamburger svg path,
+body.producto-page header #menu-toggle svg path {
+  fill:   #000000 !important;
+  stroke: #000000 !important;
+}

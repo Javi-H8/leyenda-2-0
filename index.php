@@ -19,7 +19,8 @@ include 'includes/header.php';
     <?php
       $slides = [
         ['img'=>'assets/images/tienda-2.jpg','title'=>'EL ESPACIO LEYENDA','subtitle'=>'Visita nuestra tienda','cta'=>'VER UBICACIÓN','url'=>'#'],
-        ['img'=>'assets/images/tienda-4.jpg','title'=>'AMBIENTE ÚNICO','subtitle'=>'Diseño y estilo','cta'=>'DESCÚBRELO','url'=>'#'],
+        ['img'=>'assets/images/tienda-4.jpg','title'=>'AMBIENTE ÚNICO','subtitle'=>'Diseño y estilo','cta'=>'DESCÚBRELO','url'=>'/pages/tattoo.php'],
+        ['img'=>'assets/images/tienda-3.jpg','title'=>'NUEVA COLECCIÓN','subtitle'=>'Primavera-Verano 2024','cta'=>'VER COLECCIÓN','url'=>'#'],
         ['img'=>'assets/images/tienda-5.jpg','title'=>'EXPERIENCIA LEYENDA','subtitle'=>'La moda que buscas','cta'=>'VER COLECCIÓN','url'=>'#'],
       ];
     ?>
@@ -49,12 +50,28 @@ include 'includes/header.php';
   <section id="categories" class="categories container" aria-label="Categorías">
     <div class="categories-grid">
       <?php
-        $cats = [
-          ['img'=>'assets/images/sample-1.JPG','name'=>'Camisas','url'=>'#'],
-          ['img'=>'assets/images/sample-3.jpg','name'=>'Vestidos','url'=>'#'],
-          ['img'=>'assets/images/sample-6.jpg','name'=>'Gorras','url'=>'#'],
-          ['img'=>'assets/images/tienda-4.jpg','name'=>'Pantalones','url'=>'#'],
-        ];
+          $cats = [
+            [
+              'img'  => 'assets/images/sample-1.JPG',
+              'name' => 'Camisas',
+              'url'  => 'pages/productos.php?cat=camisas'      // Aquí vamos a productos.php
+            ],
+            [
+              'img'  => 'assets/images/sample-3.jpg',
+              'name' => 'Camisetas',
+              'url'  => 'pages/productos.php?cat=camisetas'    // idem
+            ],
+            [
+              'img'  => 'assets/images/sample-6.jpg',
+              'name' => 'Accesorios',
+              'url'  => 'pages/productos.php?cat=accesorios'
+            ],
+            [
+              'img'  => 'assets/images/tienda-4.jpg',
+              'name' => 'Tattoo Studio',
+              'url'  => 'pages/tattoo.php'                    // Aquí al tattoo.php
+            ],
+          ];
         foreach($cats as $c): ?>
         <a href="<?=htmlspecialchars($c['url'],ENT_QUOTES,'UTF-8')?>" class="category-card">
           <img src="<?=htmlspecialchars($c['img'],ENT_QUOTES,'UTF-8')?>" alt="<?=htmlspecialchars($c['name'],ENT_QUOTES,'UTF-8')?>" loading="lazy">

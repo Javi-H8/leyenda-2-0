@@ -12,25 +12,39 @@ $images = [
     'studio' => 'tienda-4.jpg',
     'artist' => 'artist.jpg',
     'tattoos' => [
-        '8c4eff76-8877-48ae-98ff-d0ad15c31d64.JPG',
+        // Originales
+        
         '21d15d51-1f63-4726-a2c4-ded07ffe0cd8.JPG',
         '3fdc4bc9-5e6b-4799-8d44-fe4ba5011f30.JPG',
         '4bffd227-af5a-445c-bbc4-e7e91ff77e77.JPG',
         '4d9083ae-60ee-424e-bab8-ddd815c61271.JPG',
-        '7ec7c200-324d-41a2-bced-ac54585be849.JPG',
-        '9a29c4cd-ea56-4f25-9170-619d51520b29.JPG'
+        
+        
+        // Nuevas
+        '49fa56d2-59e9-40b6-b4e6-302124b71ad5.JPG',
+        '0857f40c-23d7-4757-9bdb-4d91d4035506.JPG',
+        'ac4952d3-27f5-4035-b62e-25c4bdc8e9ac.JPG',
+        'b6a0a063-e676-41eb-a188-84cdae822d04.JPG',
+        'ba267795-8eff-4806-9fb8-64504b755582.JPG',
+        'c569df66-0bc5-496a-ac27-c311b000bc26.JPG',
+        '5228fdf0-2f24-45ff-9b11-e10f59a82d63.JPG'
     ]
 ];
 
 // 2) Metadatos de cada tatuaje
 $tattoo_data = [
-    '8c4eff76-8877-48ae-98ff-d0ad15c31d64.JPG' => ['Pop Art Contemporáneo', 'Contornos gruesos y rellenos planos.'],
-    '21d15d51-1f63-4726-a2c4-ded07ffe0cd8.JPG' => ['Fine Line Minimalista', 'Líneas ultrafinas con single needle.'],
-    '3fdc4bc9-5e6b-4799-8d44-fe4ba5011f30.JPG' => ['Dotwork Mandala', 'Puntillismo para texturas geométricas.'],
-    '4bffd227-af5a-445c-bbc4-e7e91ff77e77.JPG' => ['Script Lettering', 'Caligrafía a máquina con variación de grosor.'],
-    '4d9083ae-60ee-424e-bab8-ddd815c61271.JPG' => ['Blackwork Bold', 'Relleno total de tinta negra.'],
-    '7ec7c200-324d-41a2-bced-ac54585be849.JPG' => ['Old School Tradicional', 'Líneas clásicas y paleta reducida.'],
-    '9a29c4cd-ea56-4f25-9170-619d51520b29.JPG' => ['Logo Corporativo', 'Diseño vectorial reproducido con máquina.']
+    '21d15d51-1f63-4726-a2c4-ded07ffe0cd8.JPG' => ['Fine Line Minimalista',       'Líneas ultrafinas con single needle.'],
+    '3fdc4bc9-5e6b-4799-8d44-fe4ba5011f30.JPG' => ['Dotwork Mandala',             'Puntillismo para texturas geométricas.'],
+    '4bffd227-af5a-445c-bbc4-e7e91ff77e77.JPG' => ['Script Lettering',            'Caligrafía a máquina con variación de grosor.'],
+    '4d9083ae-60ee-424e-bab8-ddd815c61271.JPG' => ['Blackwork Bold',              'Relleno total de tinta negra para alto contraste.'],
+// Metadatos para nuevas
+    '49fa56d2-59e9-40b6-b4e6-302124b71ad5.JPG'  => ['Máscaras Duales',             'Diseño surrealista de dos máscaras entrelazadas.'],
+    '0857f40c-23d7-4757-9bdb-4d91d4035506.JPG'  => ['Caligrafía Sutil',            'Tatuaje en línea fina con frase en cursiva delicada.'],
+    'ac4952d3-27f5-4035-b62e-25c4bdc8e9ac.JPG'  => ['Rosas y Lettering',           'Rosas realistas combinadas con lettering en negrita.'],
+    'b6a0a063-e676-41eb-a188-84cdae822d04.JPG'  => ['Realismo en Brazo',           'Retrato realista de rostro con sombreado suave.'],
+    'ba267795-8eff-4806-9fb8-64504b755582.JPG'  => ['Minimalista Pets',            'Siluetas de gato y perro en single line art.'],
+    'c569df66-0bc5-496a-ac27-c311b000bc26.JPG'  => ['Memento Mori Geométrico',     'Cráneo y reloj con elementos geométricos.'],
+    '5228fdf0-2f24-45ff-9b11-e10f59a82d63.JPG'  => ['Cadena Rota',                 'Cadena en negro con detalle de eslabón roto.']
 ];
 
 // 3) Métodos de tatuaje para cards
@@ -181,6 +195,9 @@ function esc(string $s): string {
 
   <?php include __DIR__ . '/../includes/footer.php'; ?>
 
+  <script>
+  window.__TATTOO_SLIDE_COUNT = <?= count($images['tattoos']) ?>;
+</script>
   <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
   <script src="../assets/js/tattoo.js" defer></script>
 </body>

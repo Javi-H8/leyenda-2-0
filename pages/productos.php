@@ -2,6 +2,16 @@
 // ───────────── INIT & SECURITY ─────────────
 declare(strict_types=1);
 require_once __DIR__ . '/../config/database.php'; // conexión PDO
+// ───────────── CABECERAS HTTP DEFENSIVAS ─────────────
+header('X-Frame-Options: DENY');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: same-origin');
+header("Content-Security-Policy: default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self';");
+
+// ───────────── COOKIES DE SESIÓN MÁS SEGURAS ─────────────
+ini_set('session.cookie_secure',   '1');
+ini_set('session.cookie_httponly', '1');
+ini_set('session.cookie_samesite', 'Lax');
 
 // ───────────── SESSION & CSRF ─────────────
 session_start();
@@ -23,20 +33,58 @@ try {
     exit('Error al cargar categorías.');
 }
 
-// ───────────── CARGAR PRODUCTOS ─────────────
+// ───────────── FILTROS GET ─────────────
+$where  = ["p.activo = 1", "p.deleted_at IS NULL"];
+$params = [];
+
+// 1. Filtrar por categoría si no es “all”
+if (
+    isset($_GET['categoria']) &&
+    preg_match('/^[a-z0-9\-]+$/i', $_GET['categoria']) &&
+    $_GET['categoria'] !== 'all'
+) {
+    $where[]             = "c.slug = :cat_slug";
+    $params[':cat_slug'] = $_GET['categoria'];
+}
+
+// 2. Filtrar por búsqueda de nombre si existe
+if (!empty($_GET['busqueda'])) {
+    $where[]           = "p.nombre LIKE :busq";
+    $params[':busq']   = '%' . trim($_GET['busqueda']) . '%';
+}
+
+// 3. Construir la cláusula WHERE final
+$sqlWhere = implode(' AND ', $where);
+
+// ───────────── CARGAR PRODUCTOS CON FILTROS ─────────────
 try {
-    $stmtProd = $pdo->query("
+    $stmtProd = $pdo->prepare("
       SELECT p.id, p.nombre, p.slug, p.descripcion, p.precio_base, c.slug AS cat_slug
       FROM productos p
       JOIN categorias c ON p.categoria_id = c.id
-      WHERE p.activo = 1
-        AND p.deleted_at IS NULL
+      WHERE $sqlWhere
       ORDER BY p.created_at DESC
     ");
+    $stmtProd->execute($params);
     $productos = $stmtProd->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
+    error_log('Error al cargar productos: ' . $e->getMessage());
     exit('Error al cargar productos.');
 }
+
+// ───────────── PREPARAR CONSULTA DE IMÁGENES ─────────────
+$stmtImg = $pdo->prepare("
+  SELECT ruta 
+  FROM producto_imagenes
+  WHERE producto_id = :pid
+    AND principal = 1
+  ORDER BY created_at DESC
+  LIMIT 1
+");
+$stmtImg->setFetchMode(PDO::FETCH_COLUMN, 0);
+$stmtImg->execute([':pid' => 0]); // Placeholder para evitar error inicial
+
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -94,16 +142,16 @@ try {
       <p class="no-products">No hay productos disponibles.</p>
     <?php else: ?>
       <?php foreach ($productos as $p):
-        // Obtener imagen principal
+// ───────────── PREPARAR CONSULTA DE IMÁGENES (única por producto) ─────────────
         $stmtImg = $pdo->prepare("
-          SELECT ruta FROM producto_imagenes
-          WHERE variante_id = (
-            SELECT id FROM producto_variantes
-            WHERE producto_id = ? LIMIT 1
-          ) AND principal = 1
+          SELECT ruta 
+          FROM producto_imagenes
+          WHERE producto_id = :pid
+            AND principal = 1
+          ORDER BY created_at DESC
           LIMIT 1
         ");
-        $stmtImg->execute([(int)$p['id']]);
+        $stmtImg->execute([':pid' => (int)$p['id']]);
         $img = $stmtImg->fetchColumn() ?: 'placeholder.png';
       ?>
         <article class="card" data-categoria="<?= htmlspecialchars($p['cat_slug'], ENT_QUOTES) ?>">

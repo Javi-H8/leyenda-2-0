@@ -135,3 +135,20 @@ if (newsletterVid) {
     console.warn('Autoplay de newsletter bloqueado');
   });
 }
+// — force hamburger bars to black —
+document.addEventListener('DOMContentLoaded', () => {
+  // 1) Si tu hamburguesa está hecha con <span>
+  document.querySelectorAll(
+    'header .header__toggle span, header .menu-toggle span, header .hamburger span'
+  ).forEach(el => {
+    el.style.backgroundColor = '#000';
+  });
+
+  // 2) Si tu hamburguesa es un SVG inline
+  document.querySelectorAll(
+    'header .header__toggle svg path, header .menu-toggle svg path, header .hamburger svg path'
+  ).forEach(path => {
+    path.style.fill = '#000';
+    path.style.stroke = '#000';
+  });
+});
