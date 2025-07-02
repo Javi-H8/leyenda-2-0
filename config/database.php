@@ -21,10 +21,10 @@
  */
 
 // Parámetros de conexión
-$host   = 'localhost';        // o tu servidor de BD
-$db     = 'tienda_ropa';      // nombre de la base de datos
-$user   = 'root';       // usuario de BD
-$pass   = '';    // contraseña de BD
+$host   = 'localhost';
+$db     = 'tienda_ropa';
+$user   = 'root';        // <<< asegúrate de que aquí pones root
+$pass   = '';            // <<< y aquí tu contraseña (vacía en XAMPP por defecto)
 $charset= 'utf8mb4';          // juego de caracteres
 
 // DSN (Data Source Name)

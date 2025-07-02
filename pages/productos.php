@@ -164,7 +164,7 @@ $stmtImg->execute([':pid' => 0]); // Placeholder para evitar error inicial
             <h2><?= htmlspecialchars($p['nombre'], ENT_QUOTES) ?></h2>
             
             <div class="precio">€<?= number_format((float)$p['precio_base'], 2, ',', '.') ?></div>
-            <form method="post" action="../carrito.php" class="add-form">
+            <form method="post" action="../pages/carrito.php" class="add-form">
               <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
               <input type="hidden" name="producto_id" value="<?= (int)$p['id'] ?>">
               <button type="submit" class="add-to-cart">Añadir al carrito</button>

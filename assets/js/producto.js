@@ -1,82 +1,86 @@
-/**
- * assets/js/producto.js
- * Interactividad moderna para la página de producto
- */
+// assets/js/producto.js
 'use strict';
-
 document.addEventListener('DOMContentLoaded', () => {
-  // Elementos principales
-  const thumbs        = document.querySelectorAll('.gallery-thumbs .thumb');
-  const mainImages    = document.querySelectorAll('.gallery-main .main-img');
   const variantSelect = document.getElementById('variante');
-  const priceEl       = document.getElementById('precio-actual');
-  const stockNotice   = document.getElementById('stock-aviso');
-  const inputVariant  = document.getElementById('input-variante');
+  const qtyInput      = document.getElementById('cantidad');
   const addCartBtn    = document.getElementById('btn-carrito');
+  const msgEl         = document.getElementById('producto-message');
+  if (!variantSelect || !qtyInput || !addCartBtn || !msgEl) return;
 
-  // --- Función: animación de ripple en botón ---
-  function rippleEffect(e) {
+  const getMeta = name => document.querySelector(`meta[name="${name}"]`)?.content || '';
+
+  // Mensajes breves
+  function showMessage(text, type='info') {
+    msgEl.textContent = text;
+    msgEl.className = `producto-message ${type}`;
+    clearTimeout(msgEl._timer);
+    msgEl._timer = setTimeout(() => {
+      msgEl.textContent = '';
+      msgEl.className = 'producto-message';
+    }, 3000);
+  }
+
+  // Ripple (mousedown solo dibuja el efecto)
+  addCartBtn.addEventListener('mousedown', function(e) {
     const circle = document.createElement('span');
-    const diameter = Math.max(this.clientWidth, this.clientHeight);
-    const radius = diameter / 2;
-    circle.style.width = circle.style.height = `${diameter}px`;
-    circle.style.left   = `${e.clientX - this.offsetLeft - radius}px`;
-    circle.style.top    = `${e.clientY - this.offsetTop - radius}px`;
+    const d = Math.max(this.clientWidth, this.clientHeight);
+    circle.style.width = circle.style.height = `${d}px`;
+    circle.style.left = `${e.clientX - this.getBoundingClientRect().left - d/2}px`;
+    circle.style.top  = `${e.clientY - this.getBoundingClientRect().top  - d/2}px`;
     circle.classList.add('ripple');
-    const ripple = this.getElementsByClassName('ripple')[0];
-    if (ripple) ripple.remove();
     this.appendChild(circle);
-  }
-
-  // --- Función: cambiar imagen principal ---
-  function updateMainImage(index) {
-    mainImages.forEach(img => {
-      img.classList.toggle('visible', img.dataset.index === index);
-      if (img.classList.contains('visible')) {
-        img.classList.add('fade-in');
-        setTimeout(() => img.classList.remove('fade-in'), 300);
-      }
-    });
-    thumbs.forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.index === index);
-    });
-  }
-
-  // --- Función: actualizar precio y stock ---
-  function updateVariantInfo() {
-    const opt   = variantSelect.selectedOptions[0];
-    const stock = Number(opt.dataset.stock);
-    const price = Number(opt.dataset.precio).toFixed(2).replace('.', ',');
-    priceEl.textContent = `€${price}`;
-    inputVariant.value  = opt.value;
-
-    if (stock === 0) {
-      stockNotice.textContent = 'Agotado';
-      addCartBtn.disabled     = true;
-    } else {
-      addCartBtn.disabled = false;
-      stockNotice.textContent = stock <= 2
-        ? `¡Últimas ${stock} unidades!`
-        : '';
-    }
-  }
-
-  // --- Inicializar galería ---
-  thumbs.forEach(btn => {
-    btn.addEventListener('click', e => {
-      const idx = btn.dataset.index;
-      updateMainImage(idx);
-    });
+    setTimeout(() => circle.remove(), 600);
   });
 
-  // --- Inicializar variantes ---
-  variantSelect.addEventListener('change', updateVariantInfo);
+  // ÚNICO listener de click para AJAX
+  addCartBtn.addEventListener('click', async e => {
+    e.preventDefault();  // ¡imprescindible!
 
-  // --- Efecto ripple en botón de carrito ---
-  addCartBtn.addEventListener('click', rippleEffect);
+    const productId = variantSelect.value;
+    const quantity  = parseInt(qtyInput.value, 10) || 1;
+    const BASE_URL  = getMeta('base-url');
+    const csrf      = getMeta('csrf-token');
 
-  // --- Inicialización al cargar ---
-  if (thumbs.length)       updateMainImage('0');
-  if (variantSelect)       updateVariantInfo();
+    if (!productId) {
+      showMessage('Selecciona una variante', 'error');
+      return;
+    }
+
+    addCartBtn.disabled = true;
+    showMessage('Agregando…','info');
+
+    try {
+      const resp = await fetch(`${BASE_URL}/api/cart.php`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          action: 'add',
+          csrf: csrf,
+          productId: productId,
+          quantity: quantity
+        })
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(()=>null);
+        throw new Error(err?.error||resp.statusText);
+      }
+      const data = await resp.json();
+      if (!data.success) throw new Error(data.error||'Error al añadir');
+
+      showMessage('Añadido al carrito','success');
+
+      // Actualizar badge si existe
+      const badge = document.querySelector('.cart-badge');
+      if (badge && Array.isArray(data.items)) {
+        const total = data.items.reduce((sum,i)=> sum + i.quantity, 0);
+        badge.textContent = total;
+      }
+    } catch(err) {
+      console.error(err);
+      showMessage(`Error: ${err.message}`,'error');
+    } finally {
+      addCartBtn.disabled = false;
+    }
+  });
 });
-

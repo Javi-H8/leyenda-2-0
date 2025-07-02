@@ -1,141 +1,152 @@
-// assets/js/productos.js
-// 1) Filtrado cliente  2) Carrusel (main-img solo)  3) Switcher columnas (1 y 2) + efectos visuales en tarjetas
+/**
+ * assets/js/producto.js
+ * Interactividad avanzada y AJAX para la página de producto
+ */
+'use strict';
 
 document.addEventListener('DOMContentLoaded', () => {
-  const grid      = document.getElementById('lista-productos');
-  const buscador  = document.getElementById('buscador');
-  const selector  = document.getElementById('categoria');
-  const cards     = Array.from(grid.querySelectorAll('.card'));
-  const buttons   = Array.from(document.querySelectorAll('.column-switcher .col-btn'));
+  // — Elementos clave —
+  const thumbs        = document.querySelectorAll('.gallery-thumbs .thumb');
+  const mainImages    = document.querySelectorAll('.gallery-main .main-img');
+  const variantSelect = document.getElementById('variante');
+  const qtyInput      = document.getElementById('cantidad');
+  const priceEl       = document.getElementById('precio-actual');
+  const stockNotice   = document.getElementById('stock-aviso');
+  const addCartBtn    = document.getElementById('btn-carrito');
+  const msgEl         = document.getElementById('producto-message');
 
-  // — Filtrado por texto y categoría —
-  function filtrar() {
-    const text = buscador.value.trim().toLowerCase();
-    const cat  = selector.value;
-    cards.forEach(card => {
-      const title = card.querySelector('h2').textContent.toLowerCase();
-      const okText = title.includes(text);
-      const okCat  = (cat === 'all') || (card.dataset.categoria === cat);
-      card.style.display = (okText && okCat) ? '' : 'none';
-    });
+  // Salimos si alguno falta
+  if (!variantSelect || !qtyInput || !addCartBtn || !priceEl || !stockNotice || !msgEl) {
+    return;
   }
-  buscador.addEventListener('input', filtrar);
-  selector.addEventListener('change', filtrar);
 
-  // — Switcher de columnas (solo 1 y 2) —
-  const mapClass = { '1': 'uno-por-linea', '2': 'dos-por-linea' };
-  function applyCols(n) {
-    Object.values(mapClass).forEach(c => grid.classList.remove(c));
-    grid.classList.add(mapClass[n] || mapClass['2']);
-    buttons.forEach(btn => {
-      const active = btn.dataset.cols === n;
-      btn.classList.toggle('active', active);
-      btn.setAttribute('aria-pressed', active);
-    });
-    localStorage.setItem('productosCols', n);
+  // — Helpers —
+  const getMeta = name => document.querySelector(`meta[name="${name}"]`)?.content || '';
+
+  function showMessage(text, type = 'info') {
+    msgEl.textContent = text;
+    msgEl.className = `producto-message ${type}`;
+    clearTimeout(msgEl._timer);
+    msgEl._timer = setTimeout(() => {
+      msgEl.textContent = '';
+      msgEl.className = 'producto-message';
+    }, 3000);
   }
-  buttons.forEach(btn => btn.addEventListener('click', () => applyCols(btn.dataset.cols)));
-  applyCols(localStorage.getItem('productosCols') || '2');
-  filtrar();
 
-  // — EFECTOS VISUALES EN TARJETAS — 
+  // Ripple effect (mouse down)
+  addCartBtn.addEventListener('mousedown', function rippleEffect(e) {
+    const circle = document.createElement('span');
+    const d = Math.max(this.clientWidth, this.clientHeight);
+    circle.style.width = circle.style.height = `${d}px`;
+    circle.style.left = `${e.clientX - this.getBoundingClientRect().left - d/2}px`;
+    circle.style.top  = `${e.clientY - this.getBoundingClientRect().top  - d/2}px`;
+    circle.classList.add('ripple');
+    this.appendChild(circle);
+    setTimeout(() => circle.remove(), 600);
+  });
 
-  // 1. Fade-in con IntersectionObserver
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.style.opacity = '1';
-        entry.target.style.transform = 'translateY(0)';
-        observer.unobserve(entry.target);
+  // — Galería de miniaturas —
+  thumbs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = btn.dataset.index;
+      mainImages.forEach(img =>
+        img.classList.toggle('visible', img.dataset.index === idx)
+      );
+      thumbs.forEach(b =>
+        b.classList.toggle('active', b === btn)
+      );
+    });
+  });
+  if (thumbs.length) thumbs[0].click();
+
+  // — Variantes, precio y stock —
+  function clampQuantity() {
+    const max = Number(qtyInput.max) || 1;
+    let val = parseInt(qtyInput.value, 10) || 1;
+    qtyInput.value = Math.min(Math.max(val, 1), max);
+  }
+
+  function updateVariantInfo() {
+    const opt   = variantSelect.selectedOptions[0];
+    const stock = Number(opt.dataset.stock) || 0;
+    const price = Number(opt.dataset.precio).toFixed(2).replace('.', ',');
+
+    priceEl.textContent     = `€${price}`;
+    stockNotice.textContent = stock === 0
+      ? 'Agotado'
+      : stock <= 2
+        ? `Últimas ${stock} unidades`
+        : '';
+    addCartBtn.disabled = stock === 0;
+    qtyInput.max       = stock;
+    clampQuantity();
+  }
+
+  variantSelect.addEventListener('change', () => {
+    updateVariantInfo();
+    qtyInput.value = 1;
+  });
+  qtyInput.addEventListener('input', clampQuantity);
+
+  // Inicializamos
+  updateVariantInfo();
+
+  // — ÚNICO listener AJAX: añadir al carrito —
+  addCartBtn.addEventListener('click', async e => {
+    e.preventDefault(); // evita doble envío
+
+    const variantId = variantSelect.value;
+    const quantity  = parseInt(qtyInput.value, 10) || 1;
+    const BASE_URL  = getMeta('base-url');
+    const csrf      = getMeta('csrf-token');
+
+    if (!variantId) {
+      showMessage('Selecciona una variante válida', 'error');
+      return;
+    }
+
+    addCartBtn.disabled = true;
+    showMessage('Agregando…', 'info');
+
+    try {
+      const resp = await fetch(`${BASE_URL}/api/cart.php`, {
+        method:      'POST',
+        credentials: 'same-origin',
+        headers:     { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action:    'add',
+          csrf:      csrf,
+          productId: variantId,  // ojo: se envía como productId
+          quantity:  quantity
+        })
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => null);
+        throw new Error(err?.error || resp.statusText);
       }
-    });
-  }, { threshold: 0.1 });
-  cards.forEach(card => {
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(20px)';
-    card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-    observer.observe(card);
-  });
 
-  // 2. “Pop” al hover
-  cards.forEach(card => {
-    card.addEventListener('mouseenter', () => {
-      card.style.transform += ' scale(1.03)';
-      card.style.boxShadow = '0 12px 24px rgba(0,0,0,0.15)';
-    });
-    card.addEventListener('mouseleave', () => {
-      // restaurar solo transform translateY si ya visible
-      card.style.transform = 'translateY(0)';
-      card.style.boxShadow = '';
-    });
-  });
+      const data = await resp.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Operación fallida');
+      }
 
-  // 3. Ripple al click
-  cards.forEach(card => {
-    card.addEventListener('click', e => {
-      const rect = card.getBoundingClientRect();
-      const circle = document.createElement('span');
-      const d = Math.max(rect.width, rect.height);
-      const x = e.clientX - rect.left - d/2;
-      const y = e.clientY - rect.top  - d/2;
-      circle.style.width = circle.style.height = d + 'px';
-      circle.style.left = x + 'px';
-      circle.style.top  = y + 'px';
-      circle.className = 'ripple';
-      const rip = card.querySelector('.ripple');
-      if (rip) rip.remove();
-      card.appendChild(circle);
-    });
-  });
+      showMessage('Producto añadido al carrito', 'success');
 
-  // 4. Tilt suave con el ratón
-  cards.forEach(card => {
-    card.addEventListener('mousemove', e => {
-      const { width, height, left, top } = card.getBoundingClientRect();
-      const x = (e.clientX - left) / width  - 0.5;
-      const y = (e.clientY - top)  / height - 0.5;
-      const rx = y * 6;
-      const ry = x * 6;
-      card.style.transform = `perspective(500px) translateY(0) rotateX(${-rx}deg) rotateY(${ry}deg) scale(1.02)`;
-    });
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = 'translateY(0)';
-    });
-  });
+      // Actualizar badge
+      const badge = document.querySelector('.cart-badge');
+      if (badge && Array.isArray(data.items)) {
+        const totalItems = data.items.reduce((sum, it) => sum + it.quantity, 0);
+        badge.textContent = totalItems;
+      }
 
-
-});
-
-// ====== EFECTOS VISUALES ======
-
-// 1) Fade-in al entrar en viewport
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('fade-in');
-      observer.unobserve(entry.target);
+    } catch (err) {
+      console.error('Add to cart error:', err);
+      showMessage(`Error: ${err.message}`, 'error');
+    } finally {
+      addCartBtn.disabled = false;
     }
   });
-}, { threshold: 0.1 });
 
-document.querySelectorAll('.card').forEach(card => {
-  card.style.opacity = '0';
-  card.style.transform = 'translateY(20px)';
-  observer.observe(card);
 });
-
-// 2) Ripple al click
-document.querySelectorAll('.card').forEach(card => {
-  card.addEventListener('click', e => {
-    const circle = document.createElement('span');
-    const d = Math.max(card.clientWidth, card.clientHeight);
-    circle.style.width = circle.style.height = `${d}px`;
-    const rect = card.getBoundingClientRect();
-    circle.style.left = `${e.clientX - rect.left - d/2}px`;
-    circle.style.top  = `${e.clientY - rect.top  - d/2}px`;
-    circle.classList.add('ripple');
-    const old = card.querySelector('.ripple');
-    if (old) old.remove();
-    card.appendChild(circle);
-  });
-});
+ 

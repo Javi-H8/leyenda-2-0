@@ -365,3 +365,79 @@ body.producto-page header #menu-toggle svg path {
   fill:   #000000 !important;
   stroke: #000000 !important;
 }
+
+/* ==============================
+   Estilo para el campo "Cantidad"
+   ============================== */
+.cantidad-wrapper {
+  display: inline-block;
+  width: 6rem;              /* ancho por defecto en pantallas grandes */
+  max-width: 100%;          /* nunca exceder el 100% de su contenedor */
+}
+
+.cantidad-wrapper .cantidad-input {
+  /* 1) Tamaño y tipografía */
+  width: 100%;
+  padding: 0.5rem;
+  font-size: var(--fs-md);
+  font-family: var(--font-base);
+  font-weight: var(--fw-regular);
+
+  /* 2) Colores */
+  background-color: var(--color-card-bg);   /* Fondo oscuro */
+  color:           var(--color-text);       /* Texto blanco */
+  border: 1px solid var(--color-border);    /* Borde suave */
+
+  /* 3) Bordes redondeados y transición */
+  border-radius: var(--radius);
+  transition: border-color var(--transition), box-shadow var(--transition);
+
+  /* 4) Quitar apariencia nativa */
+  -moz-appearance: textfield;   /* Firefox */
+  appearance:     none;         /* Chrome, Edge, Safari, etc. */
+}
+
+/* 5) Elimina las flechas en Chrome/Safari */
+.cantidad-wrapper .cantidad-input::-webkit-outer-spin-button,
+.cantidad-wrapper .cantidad-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* 6) Focus state más visible */
+.cantidad-wrapper .cantidad-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+/* 7) Placeholder en gris claro */
+.cantidad-wrapper .cantidad-input::placeholder {
+  color: var(--color-muted);
+  opacity: 1; /* Asegura visibilidad */
+}
+
+
+/* ==============================
+   Responsive adjustments
+   ============================== */
+
+/* En pantallas medianas: ajustar ancho */
+@media (max-width: 768px) {
+  .cantidad-wrapper {
+    width: 5rem;
+  }
+}
+
+/* En móviles: ocupar ancho completo */
+@media (max-width: 480px) {
+  .cantidad-wrapper {
+    display: block;
+    width: 100%;
+    margin-bottom: var(--gap);
+  }
+  .cantidad-wrapper .cantidad-input {
+    padding: 0.75rem;
+    font-size: var(--fs-lg);
+  }
+}

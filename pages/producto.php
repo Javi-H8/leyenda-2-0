@@ -1,180 +1,231 @@
 <?php
-// ───────────── INIT & SECURITY ─────────────
-declare(strict_types=1);
-require_once __DIR__ . '/../config/database.php';   // Conexión PDO
+// pages/producto.php
 
-// ───────────── HTTP HEADERS DEFENSIVE ─────────────
+declare(strict_types=1);
+
+if (session_status() === PHP_SESSION_NONE) session_start();
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// Security headers
 header('X-Frame-Options: DENY');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: same-origin');
-header("Content-Security-Policy: default-src 'self'; img-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self';");
+header(
+  "Content-Security-Policy: default-src 'self'; ".
+  "img-src 'self' data:; ".
+  "script-src 'self' 'unsafe-inline'; ".
+  "style-src 'self' 'unsafe-inline'; ".
+  "font-src 'self';"
+);
 
-// ───────────── SESSION & CSRF ─────────────
-session_start();
-if (!isset($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-$csrf = $_SESSION['csrf_token'];
+require_once __DIR__ . '/../config/database.php';    // crea $pdo
+require_once __DIR__ . '/../includes/cart_functions.php'; // cart_item_count()
 
-// ───────────── VALIDATE SLUG ─────────────
+// 1) Validar slug
 $slug = filter_input(INPUT_GET, 'slug', FILTER_VALIDATE_REGEXP, [
-    'options' => ['regexp' => '/^[a-z0-9\-]+$/i']
+  'options'=>['regexp'=>'/^[a-z0-9\-]+$/i']
 ]);
 if (!$slug) {
     http_response_code(400);
-    exit('Solicitud inválida.');
+    exit('Solicitud inválida');
 }
 
 try {
-    // ───────────── FETCH PRODUCT ─────────────
-    $stmt = $pdo->prepare("
+    // 2) DATOS PRINCIPALES
+    $sqlProd = "
       SELECT p.id, p.nombre, p.descripcion, p.precio_base, c.nombre AS categoria
       FROM productos p
-      JOIN categorias c ON p.categoria_id = c.id
-      WHERE p.slug = :slug AND p.activo = 1 AND p.deleted_at IS NULL
+      JOIN categorias c ON c.id = p.categoria_id
+      WHERE p.slug = :slug
+        AND p.activo = 1
+        AND p.deleted_at IS NULL
       LIMIT 1
-    ");
-    $stmt->execute([':slug' => $slug]);
-    $producto = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$producto) {
+    ";
+    $stmt = $pdo->prepare($sqlProd);
+    $stmt->execute([':slug'=>$slug]);
+    $prod = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$prod) {
         http_response_code(404);
-        exit('Producto no encontrado.');
+        exit('Producto no encontrado');
     }
-    $prodId = (int)$producto['id'];
+    $prodId = (int)$prod['id'];
 
-    // ───────────── FETCH IMAGES ─────────────
-    $stmtImgs = $pdo->prepare("
+    // 3) IMÁGENES
+    $sqlImgs = "
       SELECT ruta, principal
       FROM producto_imagenes
       WHERE producto_id = :pid
       ORDER BY principal DESC, created_at ASC
-    ");
-    $stmtImgs->execute([':pid' => $prodId]);
-    $imagenes = $stmtImgs->fetchAll(PDO::FETCH_ASSOC);
+    ";
+    $stmt = $pdo->prepare($sqlImgs);
+    $stmt->execute([':pid'=>$prodId]);
+    $imagenes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // ───────────── FETCH VARIANTS ─────────────
-    $stmtVars = $pdo->prepare("
-      SELECT v.id, v.talla, v.color, v.stock,
-             COALESCE(v.precio, p.precio_base) AS precio
+    // 4) VARIANTES
+    $sqlVars = "
+      SELECT
+        v.id,
+        v.talla,
+        v.color,
+        v.stock,
+        COALESCE(v.precio, p.precio_base) AS precio
       FROM producto_variantes v
       JOIN productos p ON p.id = v.producto_id
-      WHERE v.producto_id = :pid AND v.eliminado_en IS NULL
+      WHERE v.producto_id = :pid
+        AND v.eliminado_en IS NULL
       ORDER BY v.talla, v.color
-    ");
-    $stmtVars->execute([':pid' => $prodId]);
-    $variantes = $stmtVars->fetchAll(PDO::FETCH_ASSOC);
+    ";
+    $stmt = $pdo->prepare($sqlVars);
+    $stmt->execute([':pid'=>$prodId]);
+    $rawVars = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // 5) Procesar variantes en estructura útil
+    $variantes = [];
+    foreach ($rawVars as $v) {
+        $variantes[] = [
+            'id'       => (int)$v['id'],
+            'label'    => "{$v['talla']} · {$v['color']}",
+            'stock'    => (int)$v['stock'],
+            'precio'   => (float)$v['precio'],
+            'disabled' => ((int)$v['stock'] === 0),
+        ];
+    }
 
 } catch (PDOException $e) {
-    error_log('Error en producto.php: ' . $e->getMessage());
+    error_log("Producto error: {$e->getMessage()}");
     http_response_code(500);
-    exit('Error interno.');
+    exit('Error interno');
 }
-?><!DOCTYPE html>
+
+// Preparar título y JSON-LD
+$pageTitle = htmlspecialchars($prod['nombre'], ENT_QUOTES) . ' · LEYENDA';
+$ldVariants = array_map(fn($v)=>[
+    '@type'    => 'Offer',
+    'sku'      => $v['id'],
+    'price'    => number_format($v['precio'],2,'.',''),
+    'priceCurrency' => 'EUR',
+    'availability'  => $v['stock']>0 ? 'InStock' : 'OutOfStock',
+], $variantes);
+
+?>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title><?= htmlspecialchars($producto['nombre'], ENT_QUOTES) ?> · LEYENDA</title>
-  <link rel="stylesheet" href="../assets/css/grid.css">
-  <link rel="stylesheet" href="../assets/css/header.css">
-  <link rel="stylesheet" href="../assets/css/footer.css">
-  <link rel="stylesheet" href="../assets/css/producto.css">
+  <?php include __DIR__ . '/../includes/header.php'; ?>
+  <title><?= $pageTitle ?></title>
+  <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/producto.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": <?= json_encode($prod['nombre']) ?>,
+    "description": <?= json_encode($prod['descripcion']) ?>,
+    "image": <?= json_encode(array_column($imagenes, 'ruta')) ?>,
+    "offers": <?= json_encode($ldVariants) ?>
+  }
+  </script>
 </head>
 <body class="producto-page">
-<?php include __DIR__ . '/../includes/header.php'; ?>
 
 <main class="container producto-detail">
-
-  <!-- 1) Breadcrumbs -->
-  <nav class="breadcrumbs">
-    <a href="index.php">Inicio</a> ›
-    <a href="productos.php">Productos</a> ›
-    <span><?= htmlspecialchars($producto['nombre'], ENT_QUOTES) ?></span>
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <a href="<?= BASE_URL ?>/index.php">Inicio</a> ›
+    <a href="<?= BASE_URL ?>/pages/productos.php">Productos</a> ›
+    <span><?= htmlspecialchars($prod['nombre'],ENT_QUOTES) ?></span>
   </nav>
 
   <div class="detalle-grid">
-    <!-- 2) Miniaturas -->
-    <div class="gallery-thumbs">
-      <?php foreach ($imagenes as $i => $img): ?>
-        <button class="thumb<?= $i === 0 ? ' active' : '' ?>" data-index="<?= $i ?>">
-          <img src="../assets/images/<?= htmlspecialchars($img['ruta'], ENT_QUOTES) ?>"
-               alt="<?= htmlspecialchars($producto['nombre'], ENT_QUOTES) ?>">
+
+    <div class="gallery-thumbs" role="tablist">
+      <?php foreach($imagenes as $i=>$img): ?>
+        <button class="thumb<?= $i?'':' active'?>"
+                data-index="<?= $i ?>"
+                aria-label="Imagen <?= $i+1 ?>">
+          <img src="<?= BASE_URL ?>/assets/images/<?= htmlspecialchars($img['ruta'],ENT_QUOTES) ?>"
+               loading="lazy"
+               alt="<?= htmlspecialchars($prod['nombre'],ENT_QUOTES) ?>">
         </button>
       <?php endforeach; ?>
     </div>
 
-    <!-- 3) Imagen principal -->
     <div class="gallery-main">
-      <?php foreach ($imagenes as $i => $img): ?>
-        <img src="../assets/images/<?= htmlspecialchars($img['ruta'], ENT_QUOTES) ?>"
+      <?php foreach($imagenes as $i=>$img): ?>
+        <img class="main-img<?= $i?'':' visible'?>"
              data-index="<?= $i ?>"
-             class="main-img<?= $i === 0 ? ' visible' : '' ?>"
-             alt="<?= htmlspecialchars($producto['nombre'], ENT_QUOTES) ?>">
+             src="<?= BASE_URL ?>/assets/images/<?= htmlspecialchars($img['ruta'],ENT_QUOTES) ?>"
+             loading="lazy"
+             alt="<?= htmlspecialchars($prod['nombre'],ENT_QUOTES) ?>">
       <?php endforeach; ?>
     </div>
 
-    <!-- 4) Información del producto -->
     <div class="product-info">
-      <h1><?= htmlspecialchars($producto['nombre'], ENT_QUOTES) ?></h1>
-      <p class="categoria"><?= htmlspecialchars($producto['categoria'], ENT_QUOTES) ?></p>
-      <div class="price">€<?= number_format((float)$producto['precio_base'], 2, ',', '.') ?></div>
+      <h1><?= htmlspecialchars($prod['nombre'], ENT_QUOTES) ?></h1>
+      <p class="categoria"><?= htmlspecialchars($prod['categoria'], ENT_QUOTES) ?></p>
 
-      <!-- Variantes (talla · color) -->
+      <div class="price">
+        Precio: <span id="precio-actual">
+          €<?= number_format((float)$prod['precio_base'],2,',','.') ?>
+        </span>
+      </div>
+
       <section class="detalles-variant">
-        <label for="variante">Elige talla · color:</label>
-        <select id="variante">
-          <?php foreach ($variantes as $v):
-            $stock = (int)$v['stock'];
-            $label = "{$v['talla']} · {$v['color']}";
-            if ($stock === 0) {
-              $label .= " (Agotado)";
-            } elseif ($stock <= 2) {
-              $label .= " (Últimas {$stock})";
-            }
-          ?>
-            <option
-              value="<?= $v['id'] ?>"
-              data-stock="<?= $stock ?>"
-              data-precio="<?= number_format((float)$v['precio'], 2, '.', '') ?>"
-              <?= $stock === 0 ? 'disabled' : '' ?>
-            ><?= htmlspecialchars($label, ENT_QUOTES) ?></option>
+        <label for="variante">Variante:</label>
+        <select id="variante" aria-describedby="stock-aviso">
+          <?php foreach($variantes as $v): ?>
+            <option value="<?= $v['id'] ?>"
+                    data-stock="<?= $v['stock'] ?>"
+                    data-precio="<?= number_format($v['precio'],2,'.','') ?>"
+                    <?= $v['disabled']?'disabled':''?>>
+              <?= htmlspecialchars($v['label'],ENT_QUOTES) ?>
+              <?= $v['disabled']?"(Agotado)":"" ?>
+            </option>
           <?php endforeach; ?>
         </select>
-        <div id="stock-aviso" class="low-stock"></div>
+        <div id="stock-aviso" class="low-stock" aria-live="polite"></div>
       </section>
 
-      <!-- Precio dinámico y añadir al carrito -->
-      <section class="precio-detalle">
-        Precio: <span id="precio-actual">€<?= number_format((float)$producto['precio_base'], 2, ',', '.') ?></span>
-      </section>
-      <form method="post" action="../carrito.php" class="add-form">
-        <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
-        <input type="hidden" name="variante_id" id="input-variante" value="">
-        <button type="submit" id="btn-carrito" class="add-to-cart">Añadir al carrito</button>
-      </form>
+<div class="cantidad-wrapper">
+  <input
+    type="number"
+    id="cantidad"
+    class="cantidad-input"
+    value="1"
+    min="1"
+    max="10"
+    placeholder="0"
+  >
+</div>
 
-      <!-- Información de envío/devolución -->
+      <button id="btn-carrito" class="btn btn-primary add-to-cart"
+              <?= empty($variantes)?'disabled':'' ?>>
+        Añadir al carrito
+      </button>
+      <div id="producto-message" role="alert" aria-live="assertive"
+           class="producto-message"></div>
+
       <ul class="shipping-info">
         <li>Devolución gratuita</li>
-        <li>Envío 3–5 días laborables</li>
-        <li>Envío gratis a partir de 85€</li>
+        <li>Envío 3–5 días</li>
+        <li>Gratis a partir de 85€</li>
       </ul>
 
-      <!-- Pestañas de descripción y cuidado -->
       <details class="prod-tab">
         <summary>Descripción</summary>
-        <p><?= nl2br(htmlspecialchars($producto['descripcion'], ENT_QUOTES)) ?></p>
+        <p><?= nl2br(htmlspecialchars($prod['descripcion'],ENT_QUOTES)) ?></p>
       </details>
       <details class="prod-tab">
-        <summary>Material y cuidado</summary>
+        <summary>Cuidado</summary>
         <p>Instrucciones de lavado y cuidados.</p>
       </details>
+
     </div>
   </div>
 </main>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
-<script src="../assets/js/producto.js" defer></script>
-
+<script src="<?= BASE_URL ?>/assets/js/carrito.js" defer></script>
+<script src="<?= BASE_URL ?>/assets/js/producto.js" defer></script>
 </body>
 </html>

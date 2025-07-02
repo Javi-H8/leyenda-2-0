@@ -1,15 +1,15 @@
 <?php
 declare(strict_types=1);
 // index.php – Página principal Leyenda 2.0
-// Seguridad: sesión + CSRF
+
+// 0. Arrancar sesión
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
 
+// 1. Incluir el header (que ahora también genera/define el CSRF_TOKEN)
 include 'includes/header.php';
+
 ?>
 <main>
 
