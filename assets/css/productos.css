@@ -13,6 +13,8 @@
   --color-accent: #000000;         /* Negro puro para botones/resaltados */
   --color-muted: #666666;          /* Gris para placeholders y descripciones */
 
+
+
   /* Espaciados y formas */
   --gap: 1.5rem;
   --radius: 0.5rem;                /* Bordes ligeramente más definidos */
@@ -23,6 +25,14 @@
   --fs-sm: 0.875rem;
   --fs-md: 1rem;
   --fw-bold: 700;                  /* Más peso para destacar títulos */
+  --fs-card-title: 1rem;     /* Ajusta este valor base */
+  --fs-card-desc: 0.85rem;
+  --fs-card-price: 0.9rem;
+
+  /* Tipografía específica para tarjetas */
+  --fs-card-title: 1rem;     /* Tamaño de título de producto */
+  --fs-card-desc: 0.85rem;   /* Tamaño de descripción de producto */
+  --fs-card-price: 0.9rem;   /* Tamaño de precio de producto */
 }
 
 /* 2. Reset y fondo */
@@ -183,14 +193,21 @@ h1.text-center {
   flex-direction: column;
   flex: 1;
 }
-.card-content h2 {
-  font-size: 1.2rem;
+/* Título del producto: usamos la variable y forzamos con alta especificidad */
+#lista-productos .card-content h2 {
+  font-size: var(--fs-card-title) !important;
   margin: 0 0 0.5rem;
   color: var(--color-primary);
   font-weight: var(--fw-bold);
 }
+/* Si tuvieras descripción, controlaríamos su tamaño */
+/* .card-content .descripcion {
+  font-size: var(--fs-card-desc);
+  color: var(--color-secondary);
+  margin-bottom: calc(var(--gap) * 0.5);
+} */
 .card-content .precio {
-  font-size: 1rem;
+  font-size: var(--fs-card-price);
   font-weight: var(--fw-bold);
   color: var(--color-accent);
   margin-bottom: var(--gap);
@@ -240,37 +257,39 @@ body.productos-page {
   color: #000000 !important;
 }
 
-/* Añade al final de tu productos.css */
-
 /* Letras más pequeñas en móvil (≲480px) */
 @media (max-width: 480px) {
-  .card-content h2 {
-    font-size: 1rem;           /* antes 1.15rem */
+  /* Ajuste específico para los títulos de producto */
+  #lista-productos .card-content h2 {
+    font-size: 1rem !important;    /* antes 1.2rem */
   }
+  /* Si usaras descripciones:
   .card-content .descripcion {
-    font-size: 0.8rem;         /* antes 0.9rem */
-  }
+    font-size: 0.8rem !important;  /* antes 0.9rem 
+  } */
   .card-content .precio {
-    font-size: 0.9rem;         /* antes 1rem */
+    font-size: 0.9rem !important;  /* antes 1rem */
   }
 }
+
 /* Animaciones */
 .fade-in { animation: fadeIn 0.3s ease-in; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-   .ripple {
-     position: absolute;
-     border-radius: 50%;
-     background: rgba(0,0,0,0.1);
-     transform: scale(0);
-     animation: ripple 0.6s linear;
-     pointer-events: none;
-   }
-   @keyframes ripple {
-     to { transform: scale(4); opacity: 0; }
-   }
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.1);
+  transform: scale(0);
+  animation: ripple 0.6s linear;
+  pointer-events: none;
+}
+@keyframes ripple {
+  to { transform: scale(4); opacity: 0; }
+}
 
-   /* ====================================================
+
+/* ====================================================
    SOLO filtros y tarjetas: gris de fondo + texto blanco
    ==================================================== */
 
@@ -323,7 +342,7 @@ body.productos-page h1.text-center {
   color: #ffffff !important;
 }
 
-/* Efecto neon blanco para headings */
+/* Efecto neón blanco para headings */
 h1, h2, h3, h4, h5, h6 {
   color: #fff;
   text-shadow:
@@ -331,4 +350,11 @@ h1, h2, h3, h4, h5, h6 {
     0 0 10px rgba(255,255,255,0.6),
     0 0 20px rgba(255,255,255,0.4),
     0 0 30px rgba(255,255,255,0.2);
+}
+.card-content h2 {
+  /* Usamos la variable y le damos la máxima prioridad */
+  font-size: var(--fs-card-title) !important;
+  margin: 0 0 0.5rem;
+  color: var(--color-primary);
+  font-weight: var(--fw-bold);
 }

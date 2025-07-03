@@ -85,6 +85,40 @@ $stmtImg->setFetchMode(PDO::FETCH_COLUMN, 0);
 $stmtImg->execute([':pid' => 0]); // Placeholder para evitar error inicial
 
 
+// … tu código de INIT, seguridad y carga de filtros …
+
+// ── PAGINACIÓN ───────────────────────────────────────────────
+$page    = isset($_GET['page']) && ctype_digit($_GET['page']) && $_GET['page']>0
+           ? (int)$_GET['page'] : 1;
+$perPage = 12;  // ajusta a cuántos productos quieres por “página”
+$offset  = ($page - 1) * $perPage;
+
+// ── CARGAR PRODUCTOS CON FILTROS (ahora con LIMIT/OFFSET) ────
+try {
+    $sql = "
+      SELECT p.id, p.nombre, p.slug, p.descripcion, p.precio_base, c.slug AS cat_slug
+      FROM productos p
+      JOIN categorias c ON p.categoria_id = c.id
+      WHERE $sqlWhere
+      ORDER BY p.created_at DESC
+      LIMIT :limit OFFSET :offset
+    ";
+    $stmtProd = $pdo->prepare($sql);
+    // liga tus parámetros de filtro…
+    foreach ($params as $k => $v) {
+      $stmtProd->bindValue($k, $v);
+    }
+    // y los de paginación:
+    $stmtProd->bindValue(':limit',  $perPage, PDO::PARAM_INT);
+    $stmtProd->bindValue(':offset', $offset,  PDO::PARAM_INT);
+    $stmtProd->execute();
+    $productos = $stmtProd->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log('Error al cargar productos: '.$e->getMessage());
+    exit('Error al cargar productos.');
+}
+
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -98,8 +132,8 @@ $stmtImg->execute([':pid' => 0]); // Placeholder para evitar error inicial
   <link rel="stylesheet" href="../assets/css/grid.css">
   <link rel="stylesheet" href="../assets/css/header.css">
   <link rel="stylesheet" href="../assets/css/footer.css">
-  <link rel="stylesheet" href="../assets/css/productos.css">
   <link rel="stylesheet" href="../assets/css/main.css">
+  <link rel="stylesheet" href="../assets/css/productos.css"> 
 
   <!-- JS -->
   <script src="../assets/js/main.js" defer></script>
@@ -162,13 +196,7 @@ $stmtImg->execute([':pid' => 0]); // Placeholder para evitar error inicial
           </a>
           <div class="card-content">
             <h2><?= htmlspecialchars($p['nombre'], ENT_QUOTES) ?></h2>
-            
             <div class="precio">€<?= number_format((float)$p['precio_base'], 2, ',', '.') ?></div>
-            <form method="post" action="../pages/carrito.php" class="add-form">
-              <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
-              <input type="hidden" name="producto_id" value="<?= (int)$p['id'] ?>">
-              <button type="submit" class="add-to-cart">Añadir al carrito</button>
-            </form>
           </div>
         </article>
       <?php endforeach; ?>

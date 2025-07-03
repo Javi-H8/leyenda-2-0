@@ -1,140 +1,479 @@
+/* assets/css/carrito.css */
+
 /* ===================================================================
-   assets/css/carrito.css - Estilos de la página de carrito
+   1. Variables globales (tema oscuro profesional)
    =================================================================== */
+:root {
+  /* Colores base */
+  --bg-page:        #121212;
+  --bg-panel:       #1e1e1e;
+  --bg-head:        #2a2a2a;
+  --bg-hover:       #2f2f2f;
+  --text-primary:   #ffffff;
+  --text-muted:     #aaaaaa;
+  --accent:         #444444;
+  --accent-hover:   #555555;
+  --danger:         #e74c3c;
+  --danger-hover:   #c0392b;
 
-/* 1. Estilos del contenedor principal */
-.carrito-page {
-  padding: var(--spacing-lg) 0;
+  /* Espaciados y radio */
+  --gap:            1rem;
+  --radius:         0.5rem;
+  --transition:     0.2s ease-in-out;
+
+  /* Tipografía */
+  --font-base:      'Inter', sans-serif;
+  --fs-sm:          0.875rem;
+  --fs-md:          1rem;
+  --fs-lg:          1.25rem;
+  --fw-regular:     400;
+  --fw-bold:        700;
 }
 
-/* 2. Mensaje de carrito vacío */
-.empty-cart {
-  font-size: 1rem;
-  text-align: center;
-  margin-top: var(--spacing-md);
-}
-.empty-cart a {
-  color: var(--color-accent);
-  text-decoration: underline;
+/* ===================================================================
+   2. Reset ligero y configuración base
+   =================================================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-/* 3. Tabla del carrito */
+html, body {
+  height: 100%;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-base);
+  line-height: 1.5;
+}
+
+/* ===================================================================
+   3. Contenedor general
+   =================================================================== */
+.container.carrito-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--gap);
+}
+
+/* ===================================================================
+   4. Progreso de compra (breadcrumbs)
+   =================================================================== */
+.checkout-steps {
+  margin-bottom: 1.5rem;
+}
+.checkout-steps ol {
+  display: flex;
+  list-style: none;
+  gap: 0.5rem;
+}
+.checkout-steps li {
+  position: relative;
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: var(--text-primary);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  border-radius: var(--radius);
+}
+.checkout-steps li.completed {
+  background: #27ae60;
+}
+.checkout-steps li + li::before {
+  content: '→';
+  position: absolute;
+  left: -0.8rem;
+  color: var(--text-primary);
+  font-size: var(--fs-sm);
+}
+
+/* ===================================================================
+   5. Mensajes (toasts y errores)
+   =================================================================== */
+.cart-message {
+  display: none;
+  padding: 0.75rem 1rem;
+  margin-bottom: var(--gap);
+  border-radius: var(--radius);
+  font-size: var(--fs-md);
+}
+.cart-message.error {
+  background: var(--danger);
+  display: block;
+}
+.cart-message.success {
+  background: #27ae60;
+  display: block;
+}
+
+/* ===================================================================
+   6. Panel principal del carrito
+   =================================================================== */
+#cart-container {
+  background: var(--bg-panel);
+  padding: var(--gap);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+/* ===================================================================
+   7. Tabla de items
+   =================================================================== */
 .cart-table {
   width: 100%;
-  border-collapse: collapse;
-  margin-bottom: var(--spacing-lg);
-}
-.cart-table th,
-.cart-table td {
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-bottom: 1px solid var(--color-secondary);
-  text-align: left;
-  vertical-align: middle;
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+  margin-bottom: var(--gap);
 }
 .cart-table thead th {
-  background-color: var(--color-secondary);
-  color: #fff;
+  background: var(--bg-head);
+  color: var(--text-primary);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  padding: 0.75rem;
+  text-align: left;
 }
-.cart-table tbody tr:nth-child(even) {
-  background-color: var(--overlay);
+.cart-table tbody tr {
+  background: var(--bg-panel);
+  transition: background var(--transition);
+}
+.cart-table tbody tr:hover {
+  background: var(--bg-hover);
+}
+.cart-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--accent);
+  vertical-align: middle;
 }
 
-/* 3.1 Información del producto */
-.cart-table .prod-info {
+/* ===================================================================
+   8. Celda de producto (imagen + nombre)
+   =================================================================== */
+.prod-info {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 0.75rem;
 }
-.cart-table .prod-info img {
+.prod-info img {
   width: 60px;
   height: 60px;
   object-fit: cover;
   border-radius: var(--radius);
+  border: 1px solid var(--accent);
+}
+.prod-info span {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-regular);
+  color: var(--text-primary);
 }
 
-/* 3.2 Input de cantidad */
-.qty-input {
-  width: 4rem;
-  padding: var(--spacing-xs);
-  border: 1px solid var(--color-secondary);
+/* ===================================================================
+   9. Control de cantidad (+ / –)
+   =================================================================== */
+.qty-control {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.qty-control button {
+  width: 1.5rem;
+  height: 1.5rem;
+  background: var(--accent);
+  border: none;
   border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: var(--fs-lg);
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.qty-control button:hover {
+  background: var(--accent-hover);
+}
+.qty-input {
+  width: 3ch;
+  padding: 0.25rem;
+  background: var(--bg-panel);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  color: var(--text-primary);
   text-align: center;
-  transition: border-color var(--transition);
+  font-size: var(--fs-md);
 }
 .qty-input:focus {
   outline: none;
-  border-color: var(--color-primary);
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
+}
+.qty-input::-webkit-inner-spin-button,
+.qty-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-/* 3.3 Subtotal */
-.subtotal {
-  font-weight: bold;
-}
-
-/* 4. Mensajes de acción AJAX */
-.cart-message {
-  display: none;
-  margin-bottom: var(--spacing-md);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius);
-  background-color: var(--color-accent);
-  color: #fff;
-}
-.cart-message.show {
-  display: block;
-}
-
-/* 5. Resumen del carrito */
-.cart-summary {
-  display: flex;
-  justify-content: flex-end;
-  align-items: baseline;
-  gap: var(--spacing-md);
-  font-size: 1.25rem;
-  font-weight: bold;
-}
-
-/* 6. Acciones del carrito */
-.cart-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--spacing-sm);
-  margin-top: var(--spacing-md);
-}
-
-/* 7. Botones */
-.btn {
-  display: inline-block;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius);
-  font-size: 1rem;
-  text-align: center;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: background var(--transition), color var(--transition);
-}
-.btn-primary {
-  background-color: var(--color-primary);
-  color: #fff;
-}
-.btn-primary:hover {
-  background-color: var(--color-secondary);
-}
-.btn-secondary {
-  background-color: var(--color-secondary);
-  color: #fff;
-}
-.btn-secondary:hover {
-  background-color: var(--color-accent);
-}
+/* ===================================================================
+   10. Botón eliminar
+   =================================================================== */
 .btn-remove {
   background: transparent;
   border: none;
-  color: var(--color-secondary);
+  color: var(--danger);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
   cursor: pointer;
-  font-size: 0.875rem;
   transition: color var(--transition);
 }
 .btn-remove:hover {
-  color: var(--color-primary);
+  color: var(--danger-hover);
+  text-decoration: underline;
+}
+
+/* ===================================================================
+   11. Formulario de cupón
+   =================================================================== */
+.coupon-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: var(--gap);
+}
+.coupon-form label {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.coupon-form input[type="text"] {
+  flex: 1;
+  padding: 0.5rem;
+  background: var(--bg-panel);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+}
+.coupon-form .btn-secondary {
+  padding: 0.6rem 1.2rem;
+  background: var(--accent);
+  color: var(--text-primary);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.coupon-form .btn-secondary:hover {
+  background: var(--accent-hover);
+}
+
+/* ===================================================================
+   12. Resumen de precios
+   =================================================================== */
+.cart-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem 0;
+  background: var(--bg-panel);
+  padding: var(--gap);
+  border-radius: var(--radius);
+  position: sticky;
+  top: var(--gap);
+}
+.cart-summary dt {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.cart-summary dd {
+  font-size: var(--fs-md);
+  color: var(--text-primary);
+  font-weight: var(--fw-bold);
+}
+.cart-summary .total-line dt,
+.cart-summary .total-line dd {
+  font-size: var(--fs-lg);
+}
+
+/* ===================================================================
+   13. Acciones del carrito
+   =================================================================== */
+.cart-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: var(--gap);
+}
+.cart-actions .btn {
+  padding: 0.75rem 1.5rem;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+}
+.cart-actions .btn-primary {
+  background: var(--accent);
+  color: var(--text-primary);
+  border: none;
+}
+.cart-actions .btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+}
+.cart-actions .btn-secondary {
+  background: var(--bg-head);
+  color: var(--text-primary);
+  border: none;
+}
+.cart-actions .btn-secondary:hover {
+  background: var(--accent);
+  transform: translateY(-2px);
+}
+
+/* ===================================================================
+   14. Sección “También te puede interesar”
+   =================================================================== */
+.cart-related {
+  margin-top: 2rem;
+}
+.cart-related h2 {
+  font-size: var(--fs-lg);
+  margin-bottom: var(--gap);
+  color: var(--text-primary);
+}
+.related-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--gap);
+}
+.related-list li {
+  background: var(--bg-panel);
+  border-radius: var(--radius);
+  overflow: hidden;
+  text-align: center;
+  transition: transform var(--transition), background var(--transition);
+}
+.related-list li:hover {
+  background: var(--bg-hover);
+  transform: translateY(-4px);
+}
+.related-list img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+.related-list span {
+  display: block;
+  padding: 0.5rem;
+  color: var(--text-primary);
+}
+.related-list .price {
+  font-size: var(--fs-md);
+  color: var(--text-muted);
+}
+
+/* ===================================================================
+   15. Responsive: de tabla a tarjetas en móvil
+   =================================================================== */
+@media (max-width: 768px) {
+  .cart-table thead {
+    display: none;
+  }
+  .cart-table,
+  .cart-table tbody,
+  .cart-table tr,
+  .cart-table td {
+    display: block;
+    width: 100%;
+  }
+  .cart-table tr {
+    margin-bottom: var(--gap);
+    background: var(--bg-panel);
+    border-radius: var(--radius);
+    padding: var(--gap);
+  }
+  .cart-table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+  }
+  .coupon-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .cart-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .cart-summary {
+    position: static;
+  }
+}
+/* ─────────────────────────────────────────────────────────────────────
+   O V E R R I D E  Header en negro y tweaks responsive
+   ───────────────────────────────────────────────────────────────────── */
+
+/* 1) Forzar texto negro en todo el header, en cualquier pantalla */
+header,
+header * {
+  color: #000 !important;
+}
+
+/* 2) Si tu menú hamburguesa usa spans o barras apiladas */
+header .menu-toggle span,
+header .header__toggle span,
+header .hamburger span {
+  background-color: #000 !important;
+}
+
+/* 3) Si tu hamburguesa es un SVG */
+header svg path,
+header svg line,
+header svg polyline {
+  fill:   #000 !important;
+  stroke: #000 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Responsive: mejora de usabilidad y legibilidad
+   ───────────────────────────────────────────────────────────────────── */
+
+/* A) Aumentar tamaño táctil de botones en móvil */
+@media (max-width: 768px) {
+  header button,
+  header a {
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+  }
+  .qty-control button {
+    width: 2rem !important;
+    height: 2rem !important;
+    font-size: 1.25rem !important;
+  }
+  .qty-input {
+    font-size: 1rem !important;
+  }
+}
+
+/* B) Colapsar elementos en tablet / móvil si hay mucho ancho */
+@media (max-width: 1024px) {
+  .cart-actions {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+  .coupon-form {
+    flex-direction: column !important;
+  }
+}
+
+/* C) Mejorar legibilidad en muy pantallas pequeñas */
+@media (max-width: 480px) {
+  .prod-info span {
+    font-size: 0.9rem !important;
+  }
+  .cart-table td {
+    font-size: 0.9rem !important;
+  }
+  .cart-summary dt,
+  .cart-summary dd {
+    font-size: 0.9rem !important;
+  }
 }
