@@ -77,7 +77,7 @@ $stmtImg = $pdo->prepare("
   SELECT ruta 
   FROM producto_imagenes
   WHERE producto_id = :pid
-    AND principal = 1
+  AND principal = 1
   ORDER BY created_at DESC
   LIMIT 1
 ");

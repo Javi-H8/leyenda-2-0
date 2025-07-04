@@ -1,5 +1,35 @@
 /* assets/css/header.css */
 
+/* ===================================================================
+   1. Variables Globales (extendidas)
+   =================================================================== */
+:root {
+  --color-bg: #fff;
+  --color-bg-rgb: 255,255,255;
+  --color-overlay: rgba(0, 0, 0, .1);
+  --color-primary: #333;
+  --color-accent: #333;
+  --transition-fast: 200ms ease-in-out;
+
+  /* Espaciados fluidos */
+  --spacing-vertical: clamp(0.5rem, 2vw, 1rem);
+  --spacing-horizontal: clamp(1rem, 4vw, 2rem);
+}
+
+/* Soporte modo oscuro */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #222;
+    --color-bg-rgb: 34,34,34;
+    --color-primary: #eee;
+    --color-accent: #fff;
+    --color-overlay: rgba(255,255,255,0.1);
+  }
+}
+
+/* ===================================================================
+   2. Estructura Básica (tu código original)
+   =================================================================== */
 /* Variables globales */
 :root {
   --color-bg: #fff;
@@ -22,12 +52,43 @@
   padding: 1rem;
 }
 
-/* Logo */
+/* Logo contenedor */
 .logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--color-primary);
-  text-decoration: none;
+  position: relative;
+  display: inline-block;
+  line-height: 1;
+}
+
+/* Texto principal “LEYENDA” */
+.logo-main {
+  display: block;
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: 2rem;       /* respetamos tamaño original adaptado */
+  color: transparent;
+  -webkit-text-stroke: 1px #000; /* trazo neón negro */
+  text-shadow:
+    0 0 2px   #000,
+    0 0 4px   #000,
+    0 0 8px   rgba(0,0,0,0.7),
+    0 0 12px  rgba(0,0,0,0.5);
+}
+
+/* Texto secundario “CLOTHES” debajo y a la derecha */
+.logo-sub {
+  position: absolute;
+  top: 100%;              /* justo debajo */
+  right: 0;               /* alineado a la derecha */
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: 1rem;        /* más pequeño, respetando proporción */
+  color: transparent;
+  -webkit-text-stroke: 0.8px #000;
+  text-shadow:
+    0 0 1px   #000,
+    0 0 2px   #000,
+    0 0 4px   rgba(0,0,0,0.7);
+  transform: translateY(-0.1em);
 }
 
 /* Hamburgesa */
@@ -56,7 +117,7 @@
 
 /* Cuando está abierto */
 .nav-menu.is-open {
-  max-height: 90vh; /* lo que necesites */
+  max-height: 90vh;
 }
 
 /* Lista vertical móvil */
@@ -109,3 +170,107 @@
   }
 }
 
+/* Responsive tipográfico para el logo */
+.logo-main {
+  font-size: clamp(1.5rem, 5vw, 2rem);
+}
+.logo-sub {
+  font-size: clamp(0.8rem, 3vw, 1rem);
+  top: calc(100% + 0.05em);
+}
+
+@media (max-width: 480px) {
+  .logo {
+    margin-bottom: 0.5rem;
+  }
+  .logo-sub {
+    right: 0;
+    left: auto;
+    transform: translateY(-0.1em);
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .logo-main {
+    font-size: clamp(1.6rem, 6vw, 2rem);
+  }
+  .logo-sub {
+    font-size: clamp(0.9rem, 3.5vw, 1rem);
+    right: 0;
+    transform: translateY(-0.1em);
+  }
+}
+
+/* ===================================================================
+   3. Mejoras Avanzadas (sin tocar .nav-menu.is-open)
+   =================================================================== */
+
+/* 3.1 Glassmorphism + Sticky Header con blur */
+.site-header {
+  position: sticky;
+  top: 0;
+  background: rgba(var(--color-bg-rgb), 0.85);
+  backdrop-filter: saturate(180%) blur(10px);
+  transition: background var(--transition-fast), padding var(--transition-fast);
+}
+/* Shrink on scroll (añade en JS: document.querySelector('.site-header').classList.toggle('shrink', window.scrollY>50)) */
+.site-header.shrink {
+  padding-block: clamp(0.5rem, 2vw, 1rem);
+}
+
+/* 3.2 Layout con CSS Grid para header-inner */
+.header-inner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  padding: var(--spacing-vertical) var(--spacing-horizontal);
+  gap: 1rem;
+}
+/* Opcional: reposicionar elementos */
+.header-inner > .logo { justify-self: start; }
+.header-inner > .header__toggle { justify-self: center; }
+.header-inner > .nav-menu { justify-self: end; }
+
+/* 3.3 Container Queries (navegadores con soporte) */
+@container (max-width: 400px) {
+  .logo-main { font-size: 1.2rem; }
+  .logo-sub  { font-size: 0.7rem; }
+}
+
+/* 3.4 Accesibilidad: focus-visible */
+.header__toggle:focus-visible,
+.nav-menu__link:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* -------------------------------------------------------
+   Menú desplegado 50% ancho × 50% alto, enlaces más compactos
+   ------------------------------------------------------- */
+@media (max-width: 768px) {
+  /* 1) Forzar ancho y alto al 50% */
+  .nav-menu,
+  .nav-menu.is-open {
+    width: 50% !important;
+    height: 50vh !important;
+    max-height: 50vh !important;
+    right: 0 !important;
+    left: auto !important;
+    overflow: hidden;
+  }
+
+  /* 2) Reduce gap/padding de la lista y enlaces */
+  .nav-menu__list {
+    gap: 0 !important;
+  }
+  .nav-menu__item + .nav-menu__item {
+    border-top-width: 1px;
+    margin-top: 0;
+  }
+
+  .nav-menu__link {
+    padding: 0.4rem 0.6rem !important;  /* antes 0.5rem–1rem */
+    font-size: 0.8rem !important;        /* aún más pequeño */
+    line-height: 1 !important;
+  }
+}

@@ -45,6 +45,12 @@ $cartCount = cart_item_count();
   <!-- Favicon -->
   <link rel="icon" href="<?= BASE_URL ?>/assets/images/favicon.ico">
 
+    <!-- Fuente elegante para el logo -->
+<!-- Fuente elegante y fina para el logo -->
+<link 
+  href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;700&display=swap" 
+  rel="stylesheet"
+/>
   <!-- Estilos -->
   <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/grid.css">
   <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/main.css">
@@ -53,6 +59,7 @@ $cartCount = cart_item_count();
 
   <!-- Scripts -->
   <script src="<?= BASE_URL ?>/assets/js/main.js"    defer></script>
+  <script src="<?= BASE_URL ?>/assets/js/header-advanced.js" defer></script>
   
 </head>
 <body>
@@ -65,8 +72,10 @@ $cartCount = cart_item_count();
     <div class="container header-inner">
       
       <!-- Logo -->
-      <a href="<?= BASE_URL ?>/index.php" class="logo">LEYENDA</a>
-
+      <a href="<?= BASE_URL ?>/index.php" class="logo">
+        <span class="logo-main">LEYENDA</span>
+        <span class="logo-sub">CLOTHES</span>
+      </a>
       <!-- Botón hamburguesa (móvil) -->
       <button
         id="menu-toggle"
