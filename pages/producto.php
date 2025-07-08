@@ -198,10 +198,15 @@ $ldVariants = array_map(fn($v)=>[
   >
 </div>
 
-      <button id="btn-carrito" class="btn btn-primary add-to-cart"
-              <?= empty($variantes)?'disabled':'' ?>>
-        Añadir al carrito
-      </button>
+<button
+  id="btn-carrito"
+  class="btn btn-primary add-to-cart"
+  data-variant-id="<?= htmlspecialchars((string)$variantes[0]['id'], ENT_QUOTES, 'UTF-8') ?>"
+  data-quantity="<?= htmlspecialchars('1', ENT_QUOTES, 'UTF-8') ?>"
+  <?= empty($variantes) ? 'disabled="disabled"' : '' ?>
+>
+  Añadir al carrito
+</button>
       <div id="producto-message" role="alert" aria-live="assertive"
            class="producto-message"></div>
 
@@ -225,7 +230,8 @@ $ldVariants = array_map(fn($v)=>[
 </main>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
-<script src="<?= BASE_URL ?>/assets/js/carrito.js" defer></script>
-<script src="<?= BASE_URL ?>/assets/js/producto.js" defer></script>
+<script src="<?= htmlspecialchars(BASE_URL, ENT_QUOTES, 'UTF-8') ?>/assets/js/carrito.js" defer></script>
+<script src="<?= htmlspecialchars(BASE_URL, ENT_QUOTES, 'UTF-8') ?>/assets/js/producto.js" defer></script>
+
 </body>
 </html>

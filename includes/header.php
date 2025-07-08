@@ -24,7 +24,8 @@ if (!defined('BASE_URL')) {
 }
 
 // 3. Página actual para marcar menú activo
-$currentPage = basename($_SERVER['PHP_SELF']);
+// $currentPage = basename($_SERVER['PHP_SELF']);
+  $currentPage = basename($_SERVER['SCRIPT_NAME']);
 
 // 4. Contar ítems en carrito para mostrar un badge
 $cartCount = cart_item_count();
@@ -39,28 +40,33 @@ $cartCount = cart_item_count();
   <title><?= $pageTitle ?? 'LEYENDA – Primavera-Verano' ?></title>
 
   <!-- CSRF y Base URL para AJAX -->
-<meta name="base-url"  content="<?= BASE_URL ?>">
-<meta name="csrf-token" content="<?= htmlspecialchars(CSRF_TOKEN, ENT_QUOTES, 'UTF-8') ?>">
+  <meta name="base-url"  content="<?= htmlspecialchars(BASE_URL, ENT_QUOTES, 'UTF-8') ?>">
+  <meta name="csrf-token" content="<?= htmlspecialchars(CSRF_TOKEN, ENT_QUOTES, 'UTF-8') ?>">
 
   <!-- Favicon -->
   <link rel="icon" href="<?= BASE_URL ?>/assets/images/favicon.ico">
 
-    <!-- Fuente elegante para el logo -->
-<!-- Fuente elegante y fina para el logo -->
-<link 
-  href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;700&display=swap" 
-  rel="stylesheet"
-/>
+  <!-- Fuente elegante y fina para el logo -->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+
   <!-- Estilos -->
-  <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/grid.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars(BASE_URL, ENT_QUOTES, 'UTF-8') ?>/assets/css/grid.css">
   <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/main.css">
   <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/header.css">
   <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/footer.css">
+  <script src="<?= BASE_URL ?>/assets/js/main.js" defer></script>
+  <script src="<?= htmlspecialchars(BASE_URL, ENT_QUOTES, 'UTF-8') ?>/assets/js/header-advanced.js" defer></script>
+  <!-- Configuración global para carrito.js -->
+  <script>
+    window.CART_AJAX = {
+      csrf: '<?= htmlspecialchars(CSRF_TOKEN, ENT_QUOTES, 'UTF-8') ?>',
+      url : '<?= htmlspecialchars(BASE_URL, ENT_QUOTES, 'UTF-8') ?>/ajax/cart_action.php'
+    };
+  </script>
 
-  <!-- Scripts -->
-  <script src="<?= BASE_URL ?>/assets/js/main.js"    defer></script>
-  <script src="<?= BASE_URL ?>/assets/js/header-advanced.js" defer></script>
-  
 </head>
 <body>
 
@@ -70,12 +76,13 @@ $cartCount = cart_item_count();
   <!-- Header principal -->
   <header class="site-header">
     <div class="container header-inner">
-      
+
       <!-- Logo -->
       <a href="<?= BASE_URL ?>/index.php" class="logo">
         <span class="logo-main">LEYENDA</span>
         <span class="logo-sub">CLOTHES</span>
       </a>
+
       <!-- Botón hamburguesa (móvil) -->
       <button
         id="menu-toggle"
@@ -90,26 +97,30 @@ $cartCount = cart_item_count();
         <ul>
           <li><a href="<?= BASE_URL ?>/index.php#slider"
                  <?= $currentPage === 'index.php' ? 'class="active"' : '' ?>>Home</a></li>
-          <li><a href="<?= BASE_URL ?>/pages/tattoo.php"
-                 <?= $currentPage === 'tattoo.php' ? 'class="active"' : '' ?>>Tattoo</a></li>
+
           <li><a href="<?= BASE_URL ?>/pages/productos.php"
                  <?= $currentPage === 'productos.php' ? 'class="active"' : '' ?>>Productos</a></li>
+           <li><a href="<?= BASE_URL ?>/pages/tattoo.php"
+                 <?= $currentPage === 'tattoo.php' ? 'class="active"' : '' ?>>Tattoo Studio</a></li>
           <li><a href="<?= BASE_URL ?>/index.php#lookbook-video">Lookbook</a></li>
           <li><a href="<?= BASE_URL ?>/index.php#newsletter">Newsletter</a></li>
           <li><a href="<?= BASE_URL ?>/index.php#footer">Contacto</a></li>
-          <li class="cart-link">
-            <a href="<?= BASE_URL ?>/pages/carrito.php"
-               <?= $currentPage === 'carrito.php' ? 'class="active"' : '' ?>
-               aria-label="Ver carrito de compras">
-              🛒 Carrito
-              <?php if ($cartCount > 0): ?>
-                <span class="cart-badge" aria-label="<?= $cartCount ?> ítems en el carrito">
-                  <?= $cartCount ?>
-                </span>
-              <?php endif; ?>
-            </a>
-          </li>
         </ul>
       </nav>
+
+      <!-- Carrito siempre visible -->
+      <div class="site-header__cart" aria-live="polite">
+        <a href="<?= BASE_URL ?>/pages/carrito.php"
+           class="cart-link <?= $currentPage === 'carrito.php' ? 'active' : '' ?>"
+           aria-label="Ver carrito de compras">
+          🛒 Carrito
+          <?php if ($cartCount > 0): ?>
+            <span class="cart-badge" aria-label="<?= htmlspecialchars((string)$cartCount, ENT_QUOTES, 'UTF-8') ?> ítems en el carrito">
+              <?= htmlspecialchars((string)$cartCount, ENT_QUOTES, 'UTF-8') ?>
+            </span>
+          <?php endif; ?>
+        </a>
+      </div>
+
     </div>
   </header>
