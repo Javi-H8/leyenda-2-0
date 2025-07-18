@@ -6,7 +6,7 @@
 
 // Credenciales de tu cuenta Gmail
 $mailUser     = 'leyendaclothes@gmail.com';
-$mailPass     = 'Leyenda88.';        // App Password o contraseña de Gmail
+$mailPass     = 'mokq zclz ithj cneb';        // App Password o contraseña de Gmail
 $mailFromName = 'Leyenda Clothes';
 
 // Carga manual de las clases de PHPMailer

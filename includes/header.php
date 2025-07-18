@@ -14,9 +14,28 @@ if (!defined('CSRF_TOKEN')) {
     define('CSRF_TOKEN', $_SESSION['csrf_token']);
 }
 
+// 0bis) HTTP Security Headers – sin salida previa
+header('Strict-Transport-Security: max-age=31536000; includeSubDomains; preload');
+header('X-Frame-Options: DENY');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: no-referrer');
+header("Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; object-src 'none'; frame-ancestors 'none';");
+
+
 // 1. Carga configuración y funciones de carrito
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/cart_functions.php';
+
+// 1bis) Helpers generales (csrf_token, verify_csrf, sendVerificationEmail…)
+require_once __DIR__ . '/../functions.php';
+
+// 1ter) Si hay sesión iniciada, carga el nombre para el menú
+$user = null;
+if (!empty($_SESSION['user_id'])) {
+    $stmt = $pdo->prepare("SELECT nombre, apellido FROM usuarios WHERE id = ?");
+    $stmt->execute([ $_SESSION['user_id'] ]);
+    $user = $stmt->fetch();
+}
 
 // 2. Definir BASE_URL (ajusta si cambias de carpeta)
 if (!defined('BASE_URL')) {
@@ -57,8 +76,23 @@ $cartCount = cart_item_count();
   <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/main.css">
   <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/header.css">
   <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/footer.css">
+
+<?php if (in_array($currentPage, ['login.php','register.php'], true)): ?>
+  <link 
+    rel="stylesheet" 
+    href="<?= BASE_URL ?>/assets/css/auth.css?v=<?= filemtime(__DIR__ . '/../assets/css/auth.css') ?>"
+  >
+
+<?php endif; ?>
   <script src="<?= BASE_URL ?>/assets/js/main.js" defer></script>
   <script src="<?= htmlspecialchars(BASE_URL, ENT_QUOTES, 'UTF-8') ?>/assets/js/header-advanced.js" defer></script>
+    <!-- JS sólo para login/register -->
+  <?php if (in_array($currentPage, ['login.php','register.php'], true)): ?>
+    <script 
+      src="<?= BASE_URL ?>/assets/js/auth.js?v=<?= filemtime(__DIR__ . '/../assets/js/auth.js') ?>" 
+      defer
+    ></script>
+  <?php endif; ?>
   <!-- Configuración global para carrito.js -->
   <script>
     window.CART_AJAX = {
@@ -103,8 +137,16 @@ $cartCount = cart_item_count();
            <li><a href="<?= BASE_URL ?>/pages/tattoo.php"
                  <?= $currentPage === 'tattoo.php' ? 'class="active"' : '' ?>>Tattoo Studio</a></li>
           <li><a href="<?= BASE_URL ?>/index.php#lookbook-video">Lookbook</a></li>
-          <li><a href="<?= BASE_URL ?>/index.php#newsletter">Newsletter</a></li>
-          <li><a href="<?= BASE_URL ?>/index.php#footer">Contacto</a></li>
+          <?php if ($user): ?>
+            <li><a href="<?= BASE_URL ?>/dashboard.php">
+                Hola, <?= htmlspecialchars($user['nombre'],ENT_QUOTES,'UTF-8') ?>
+              </a>
+            </li>
+            <li><a href="<?= BASE_URL ?>/logout.php">Logout</a></li>
+          <?php else: ?>
+            <li><a href="<?= BASE_URL ?>/login.php">Login</a></li>
+          <?php endif; ?>
+
         </ul>
       </nav>
 
